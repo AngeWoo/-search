@@ -28,14 +28,21 @@
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
         #container { width: 100%; max-width: 700px; margin: 20px auto; padding: 40px; background-color: var(--card-bg); border-radius: 20px; box-shadow: var(--card-shadow); border-top: 5px solid var(--primary-color); }
         header { text-align: center; margin-bottom: 30px; }
+        
+        #home-link { text-decoration: none; color: inherit; display: inline-block; transition: transform 0.2s ease-out; }
+        #home-link:hover { transform: scale(1.05); }
+        
         h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
         h1 i { font-size: 0.9em; }
         #search-area { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         #date-input { flex-grow: 1; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 1em; font-family: inherit; font-weight: 500; color: var(--text-color); transition: all 0.3s; min-width: 150px; }
         #date-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(106, 137, 204, 0.2); }
-        #search-button, #random-search-button { padding: 12px 20px; border: none; background-color: var(--primary-color); color: white; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        #search-button:hover, #random-search-button:hover { background-color: var(--secondary-color); transform: translateY(-2px); }
-        #search-button:disabled, #random-search-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
+        
+        /* 修改：讓三個按鈕樣式一致 */
+        .action-button { padding: 12px 20px; border: none; background-color: var(--primary-color); color: white; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; text-decoration: none; }
+        .action-button:hover { background-color: var(--secondary-color); transform: translateY(-2px); color: white; }
+        .action-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
+        
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spinner { animation: spin 1s linear infinite; }
@@ -55,10 +62,8 @@
         .fallback-btn:hover { background-color: var(--primary-color); color: white; }
         
         @media (max-width: 600px) {
-            /* 修改：放大手機版字體和輸入框 */
             body { padding: 10px; font-size: 17px; }
             #date-input { font-size: 1.1em; padding: 14px 15px; }
-
             #container { padding: 20px; }
             h1 { font-size: 1.8em; gap: 10px; }
             #search-area { flex-direction: column; }
@@ -67,18 +72,21 @@
     </style>
 </head>
 <body>
-
     <div id="container">
         <header>
-            <h1><i class="bi bi-calendar-heart"></i>苑史上的今天</h1>
+            <a href="index.html" id="home-link">
+                <h1><i class="bi bi-calendar-heart"></i>苑史上的今天</h1>
+            </a>
         </header>
         <div id="search-area">
             <input type="date" id="date-input">
-            <button id="search-button"><i class="bi bi-search"></i>查詢</button>
-            <!-- 新增：隨機查詢按鈕 -->
-            <button id="random-search-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
+            <button id="search-button" class="action-button"><i class="bi bi-search"></i>查詢</button>
+            <button id="random-search-button" class="action-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
+            <!-- 新增：事件搜尋按鈕，它是一個連結 -->
+            <a href="index2.html" class="action-button" style="background-color: #27ae60;"><i class="bi bi-card-text"></i>事件搜尋</a>
         </div>
         <div id="status">請選擇日期，回顧歷史的足跡</div>
+        <!-- ...剩餘的 HTML 內容保持不變... -->
         <div id="results-wrapper">
             <div id="today-events-section" class="result-section">
                 <h2><i class="bi bi-star-fill"></i>今天事件</h2>
@@ -97,14 +105,13 @@
             </div>
         </div>
     </div>
-
     <script>
+        // ...所有的 JavaScript 內容保持不變...
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
 
         const dateInput = document.getElementById('date-input');
         const searchButton = document.getElementById('search-button');
-        // 新增：獲取隨機按鈕元素
         const randomSearchButton = document.getElementById('random-search-button');
         const statusEl = document.getElementById('status');
         const todaySection = document.getElementById('today-events-section');
@@ -127,7 +134,7 @@
         async function fetchAndProcessData(processor) {
             statusEl.innerHTML = '<i class="bi bi-hourglass-split spinner"></i>正在時光機中穿梭...';
             searchButton.disabled = true;
-            randomSearchButton.disabled = true; // 新增：禁用隨機按鈕
+            randomSearchButton.disabled = true;
             try {
                 const response = await fetch(proxyUrl);
                 if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
@@ -139,7 +146,7 @@
                 statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
             } finally {
                 searchButton.disabled = false;
-                randomSearchButton.disabled = false; // 新增：啟用隨機按鈕
+                randomSearchButton.disabled = false;
             }
         }
 
@@ -261,34 +268,29 @@
             });
         }
         
-        // 新增：隨機查詢函式
         function randomSearch() {
             const startDate = new Date('1935-12-28');
-            const endDate = new Date(); // 今天
+            const endDate = new Date(); 
 
-            // 獲取開始和結束日期的時間戳 (毫秒)
             const startTime = startDate.getTime();
             const endTime = endDate.getTime();
 
-            // 在時間範圍內生成一個隨機時間戳
             const randomTime = startTime + Math.random() * (endTime - startTime);
             const randomDate = new Date(randomTime);
 
-            // 格式化日期為 YYYY-MM-DD 以便設定到 input 中
             const year = randomDate.getFullYear();
-            const month = String(randomDate.getMonth() + 1).padStart(2, '0'); // 補零
-            const day = String(randomDate.getDate()).padStart(2, '0'); // 補零
+            const month = String(randomDate.getMonth() + 1).padStart(2, '0');
+            const day = String(randomDate.getDate()).padStart(2, '0');
             const formattedDate = `${year}-${month}-${day}`;
 
             dateInput.value = formattedDate;
-            searchForDate(); // 執行查詢
+            searchForDate();
         }
 
         searchButton.addEventListener('click', searchForDate);
         dateInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchForDate(); });
         document.getElementById('search-year-btn').addEventListener('click', () => searchByScope('year'));
         document.getElementById('search-month-btn').addEventListener('click', () => searchByScope('month'));
-        // 新增：為隨機按鈕綁定事件
         randomSearchButton.addEventListener('click', randomSearch);
 
         document.addEventListener('DOMContentLoaded', () => {
