@@ -71,7 +71,29 @@
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         #results-wrapper { margin-top: 30px; }
         .result-section { margin-bottom: 25px; display: none; }
-        .result-section h2 { font-size: 1.3em; color: var(--primary-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
+        
+        /* --- 最終修正：優化結果標題的排版 --- */
+        .result-section h2 { 
+            position: relative; /* 為了讓圖示可以絕對定位 */
+            font-size: 1.3em; 
+            color: var(--primary-color); 
+            margin-bottom: 15px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid var(--border-color); 
+            padding-left: 35px; /* 為圖示留出空間 */
+            line-height: 1.5; /* 增加行高讓換行更舒適 */
+        }
+        .result-section h2 i {
+            position: absolute; /* 將圖示脫離文檔流 */
+            left: 0;
+            top: 4px; /* 微調圖示的垂直位置 */
+            font-size: 1em;
+        }
+        .result-section h2 .highlight {
+            display: inline-block; /* 讓高亮關鍵字在換行時保持完整 */
+        }
+        /* --- 修正結束 --- */
+        
         .event-item { background-color: #fdfdff; border-left: 4px solid var(--primary-color); padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0; line-height: 1.6; transition: all 0.3s; }
         .event-item:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
         .highlight { background-color: #f1c40f; color: #333; font-weight: bold; padding: 0 2px; border-radius: 3px; }
@@ -93,6 +115,27 @@
             #search-area > * {
                 width: 90%;
                 max-width: 400px;
+                height: 54px;
+                padding: 0 15px;
+                font-size: 1.2em;
+                line-height: 54px;
+                border-radius: 10px;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            #search-area > *:last-child {
+                margin-bottom: 0;
+            }
+
+            #keyword-input {
+                background-color: #f8f9fa;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+            }
+            
+            #search-area .action-button {
+                border: none;
+                color: white;
             }
         }
     </style>
@@ -112,7 +155,7 @@
         <div id="status">請輸入關鍵字進行搜尋</div>
         <div id="results-wrapper">
             <div id="search-results-section" class="result-section">
-                <h2><i class="bi bi-card-checklist"></i>搜尋結果</h2>
+                <h2><!-- 內容由 JS 動態生成 --></h2>
                 <div class="content"></div>
             </div>
         </div>
@@ -125,10 +168,12 @@
         const searchButton = document.getElementById('search-button');
         const statusEl = document.getElementById('status');
         const resultsSection = document.getElementById('search-results-section');
+        const resultsHeader = resultsSection.querySelector('h2');
 
         function resetResults() {
             resultsSection.style.display = 'none';
             resultsSection.querySelector('.content').innerHTML = '';
+            resultsHeader.innerHTML = '';
         }
 
         async function fetchAndProcessData(processor) {
@@ -172,8 +217,9 @@
                 
                 if (foundEvents.length > 0) {
                     resultsSection.style.display = 'block';
-                    const title = `找到 ${foundEvents.length} 筆關於「<span class="highlight">${keyword}</span>」的事件`;
-                    resultsSection.querySelector('h2').innerHTML = `<i class="bi bi-card-checklist"></i>${title}`;
+                    // JS 也需要調整以適應新的 H2 結構
+                    const titleText = `找到 ${foundEvents.length} 筆關於「<span class="highlight">${keyword}</span>」的事件`;
+                    resultsHeader.innerHTML = `<i class="bi bi-card-checklist"></i>${titleText}`;
                     
                     const highlightRegex = new RegExp(keyword, 'gi');
                     const highlightedEvents = foundEvents.map(event => {
