@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>苑史上的今天 - 事件搜尋</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #27ae60; /* 主色調為綠色 */
+            --secondary-color: #2ecc71;
+            --return-button-color: #6a89cc; /* 返回按鈕使用原本的藍色 */
+
+            --bg-color: #f5f7fa; 
+            --text-color: #3d3d3d; 
+            --light-text-color: #8c8c8c;
+            --border-color: #e0e0e0; 
+            --card-bg: #ffffff; 
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        #container { width: 100%; max-width: 700px; margin: 20px auto; padding: 40px; background-color: var(--card-bg); border-radius: 20px; box-shadow: var(--card-shadow); border-top: 5px solid var(--primary-color); }
+        header { text-align: center; margin-bottom: 30px; }
+        
+        #home-link { text-decoration: none; color: inherit; display: inline-block; transition: transform 0.2s ease-out; }
+        #home-link:hover { transform: scale(1.05); }
+        
+        h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        h1 i { font-size: 0.9em; }
+        #search-area { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        #keyword-input { flex-grow: 1; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 1em; font-family: inherit; font-weight: 500; color: var(--text-color); transition: all 0.3s; }
+        #keyword-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.2); }
+        
+        .action-button {
+            padding: 12px 20px; border: none; color: white; border-radius: 10px; 
+            font-size: 1em; font-weight: 500; cursor: pointer; display: flex; 
+            align-items: center; gap: 8px; transition: all 0.3s; text-decoration: none;
+        }
+        #search-button { background-color: var(--primary-color); }
+        #return-button { background-color: var(--return-button-color); }
+
+        .action-button:hover { transform: translateY(-2px); color: white; }
+        #search-button:hover { background-color: var(--secondary-color); }
+        #return-button:hover { background-color: #4a69bd; }
+
+        #search-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
+        
+        #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
+        #results-wrapper { margin-top: 30px; }
+        .result-section { margin-bottom: 25px; display: none; }
+        .result-section h2 { font-size: 1.3em; color: var(--primary-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
+        .event-item { background-color: #fdfdff; border-left: 4px solid var(--primary-color); padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0; line-height: 1.6; transition: all 0.3s; }
+        .event-item:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        .highlight { background-color: #f1c40f; color: #333; font-weight: bold; padding: 0 2px; border-radius: 3px; }
+        
+        @media (max-width: 600px) {
+            body { padding: 10px; font-size: 17px; }
+            #keyword-input { font-size: 1.1em; padding: 14px 15px; }
+            #container { padding: 20px; }
+            h1 { font-size: 1.8em; gap: 10px; }
+            #search-area { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <header>
+            <a href="index2.html" id="home-link">
+                <h1><i class="bi bi-card-text"></i>事件全文搜尋</h1>
+            </a>
+        </header>
+        <div id="search-area">
+            <input type="text" id="keyword-input" placeholder="輸入關鍵字，例如：攝受心院...">
+            <button id="search-button" class="action-button"><i class="bi bi-search"></i>搜尋</button>
+            <!-- 修改：按鈕文字 -->
+            <a href="index.html" id="return-button" class="action-button"><i class="bi bi-calendar-heart"></i>回到苑史上的今天</a>
+        </div>
+        <div id="status">請輸入關鍵字進行搜尋</div>
+        <div id="results-wrapper">
+            <div id="search-results-section" class="result-section">
+                <h2><i class="bi bi-card-checklist"></i>搜尋結果</h2>
+                <div class="content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
+
+        const keywordInput = document.getElementById('keyword-input');
+        const searchButton = document.getElementById('search-button');
+        const statusEl = document.getElementById('status');
+        const resultsSection = document.getElementById('search-results-section');
+
+        function resetResults() {
+            resultsSection.style.display = 'none';
+            resultsSection.querySelector('.content').innerHTML = '';
+        }
+
+        async function fetchAndProcessData(processor) {
+            statusEl.innerHTML = '<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...';
+            searchButton.disabled = true;
+            keywordInput.disabled = true;
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
+                const htmlText = await response.text();
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                const rows = doc.querySelectorAll('tbody tr');
+                processor(rows);
+            } catch (error) {
+                statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
+            } finally {
+                searchButton.disabled = false;
+                keywordInput.disabled = false;
+            }
+        }
+
+        function searchByKeyword() {
+            resetResults();
+            const keyword = keywordInput.value.trim();
+            if (!keyword) {
+                statusEl.innerHTML = '<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！';
+                return;
+            }
+
+            fetchAndProcessData(rows => {
+                let foundEvents = [];
+                for (const row of rows) {
+                    const dataCell = row.querySelector('td:nth-child(2)');
+                    if (dataCell) {
+                        const rawCellText = dataCell.textContent.trim();
+                        if (rawCellText.toLowerCase().includes(keyword.toLowerCase())) {
+                            foundEvents.push(rawCellText);
+                        }
+                    }
+                }
+                
+                if (foundEvents.length > 0) {
+                    resultsSection.style.display = 'block';
+                    const title = `找到 ${foundEvents.length} 筆關於「<span class="highlight">${keyword}</span>」的事件`;
+                    resultsSection.querySelector('h2').innerHTML = `<i class="bi bi-card-checklist"></i>${title}`;
+                    
+                    const highlightRegex = new RegExp(keyword, 'gi');
+                    const highlightedEvents = foundEvents.map(event => {
+                        const highlightedText = event.replace(highlightRegex, `<span class="highlight">$&</span>`);
+                        return `<div class="event-item">${highlightedText}</div>`;
+                    }).join('');
+                    
+                    resultsSection.querySelector('.content').innerHTML = highlightedEvents;
+                    statusEl.innerHTML = `<i class="bi bi-check-circle-fill"></i>搜尋完成！`;
+                } else {
+                    statusEl.innerHTML = `<i class="bi bi-emoji-frown"></i>找不到與「${keyword}」相關的事件。`;
+                }
+            });
+        }
+        
+        searchButton.addEventListener('click', searchByKeyword);
+        keywordInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchByKeyword(); });
+    </script>
+</body>
+</html>
