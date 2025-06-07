@@ -94,21 +94,34 @@
                 align-items: center; 
             }
             
-            /* --- 最終修正：統一日期輸入框和所有按鈕的樣式 --- */
             #search-area > * {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
                 width: 90%;
                 max-width: 400px;
-                padding: 14px 15px;
-                font-size: 1.1em;
+                height: 54px;
+                padding: 0 15px;
+                font-size: 1.2em; /* 放大字體 */
+                line-height: 54px;
                 border-radius: 10px;
                 text-align: center;
+                margin-bottom: 10px;
+            }
+            #search-area > *:last-child {
+                margin-bottom: 0;
             }
 
             #date-input {
                 background-color: #f8f9fa;
                 border: 1px solid var(--border-color);
+                color: var(--text-color);
             }
-            /* --- 修正結束 --- */
+            
+            #search-area .action-button {
+                border: none;
+                color: white;
+            }
 
             .fallback-buttons { flex-direction: column; }
         }
@@ -146,8 +159,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- 恢復完整的 JavaScript -->
     <script>
-        // JavaScript 內容完全正確，無需修改
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
 
