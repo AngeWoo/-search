@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 變更 1: 瀏覽器標題 -->
     <title>真如苑史全文搜尋</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,10 +12,9 @@
     
     <style>
         :root {
-            --primary-color: #27ae60; /* 主色調為綠色 */
+            --primary-color: #27ae60;
             --secondary-color: #2ecc71;
-            --return-button-color: #6a89cc; /* 返回按鈕使用原本的藍色 */
-
+            --return-button-color: #6a89cc;
             --bg-color: #f5f7fa; 
             --text-color: #3d3d3d; 
             --light-text-color: #8c8c8c;
@@ -25,8 +23,23 @@
             --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
-        #container { width: 100%; max-width: 700px; margin: 20px auto; padding: 40px; background-color: var(--card-bg); border-radius: 20px; box-shadow: var(--card-shadow); border-top: 5px solid var(--primary-color); }
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+        }
+        
+        #container { 
+            max-width: 700px; 
+            margin: 20px auto; 
+            padding: 40px; 
+            background-color: var(--card-bg); 
+            border-radius: 20px; 
+            box-shadow: var(--card-shadow); 
+            border-top: 5px solid var(--primary-color); 
+        }
+
         header { text-align: center; margin-bottom: 30px; }
         
         #home-link { text-decoration: none; color: inherit; display: inline-block; transition: transform 0.2s ease-out; }
@@ -35,26 +48,27 @@
         h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
         h1 i { font-size: 0.9em; }
         #search-area { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        #keyword-input { flex-grow: 1; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 1em; font-family: inherit; font-weight: 500; color: var(--text-color); transition: all 0.3s; }
+        
+        #keyword-input { 
+            flex-grow: 1; 
+            padding: 12px 15px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px; font-size: 1em; 
+            font-family: inherit; font-weight: 500; 
+            color: var(--text-color); 
+            transition: all 0.3s; 
+        }
         #keyword-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.2); }
         
-        .action-button {
-            padding: 12px 20px; border: none; color: white; border-radius: 10px; 
-            font-size: 1em; font-weight: 500; cursor: pointer; display: flex; 
-            align-items: center; gap: 8px; transition: all 0.3s; text-decoration: none;
-        }
+        .action-button { padding: 12px 20px; border: none; color: white; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; text-decoration: none; }
         #search-button { background-color: var(--primary-color); }
         #return-button { background-color: var(--return-button-color); }
-
         .action-button:hover { transform: translateY(-2px); color: white; }
         #search-button:hover { background-color: var(--secondary-color); }
         #return-button:hover { background-color: #4a69bd; }
-
         #search-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
         
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .spinner { animation: spin 1s linear infinite; }
         #results-wrapper { margin-top: 30px; }
         .result-section { margin-bottom: 25px; display: none; }
         .result-section h2 { font-size: 1.3em; color: var(--primary-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
@@ -63,11 +77,23 @@
         .highlight { background-color: #f1c40f; color: #333; font-weight: bold; padding: 0 2px; border-radius: 3px; }
         
         @media (max-width: 600px) {
-            body { padding: 10px; font-size: 17px; }
+            body { font-size: 17px; }
             #keyword-input { font-size: 1.1em; padding: 14px 15px; }
-            #container { padding: 20px; }
+
+            #container { 
+                margin: 20px 10px;
+                padding: 20px; 
+            }
             h1 { font-size: 1.8em; gap: 10px; }
-            #search-area { flex-direction: column; }
+            
+            #search-area { 
+                flex-direction: column;
+                align-items: center; 
+            }
+            #search-area > * {
+                width: 90%;
+                max-width: 400px;
+            }
         }
     </style>
 </head>
@@ -75,7 +101,6 @@
     <div id="container">
         <header>
             <a href="index2.html" id="home-link">
-                <!-- 變更 2: 頁面主標題 -->
                 <h1><i class="bi bi-card-text"></i>真如苑史全文搜尋</h1>
             </a>
         </header>
@@ -92,7 +117,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
