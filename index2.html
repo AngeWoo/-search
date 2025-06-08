@@ -96,7 +96,9 @@
         .event-item:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
         .highlight { background-color: #f1c40f; color: #333; font-weight: bold; padding: 0 2px; border-radius: 3px; }
         
-        /* 新增：禁止列印的樣式 */
+        #back-to-home-btn { background-color: #e74c3c; }
+        #back-to-home-btn:hover { background-color: #c0392b !important; }
+
         @media print {
           body * {
             display: none !important;
@@ -145,7 +147,7 @@
         }
     </style>
 </head>
-<body oncontextmenu="return false;"> <!-- 新增：直接在 body 標籤上禁止右鍵 -->
+<body oncontextmenu="return false;">
     <div id="container">
         <header>
             <a href="index2.html" id="home-link">
@@ -164,11 +166,14 @@
                 <div class="content"></div>
             </div>
         </div>
+        <div id="home-button-container" style="text-align: center; margin-top: 30px; display: none;">
+            <button id="back-to-home-btn" class="action-button">
+                <i class="bi bi-arrow-clockwise"></i>回首頁
+            </button>
+        </div>
     </div>
     
-    <!-- 新增：保護機制的 JavaScript -->
     <script>
-        // 1. 禁止組合鍵 (例如 Ctrl+S, Ctrl+P, Ctrl+U)
         document.addEventListener('keydown', function(e) {
           if (e.ctrlKey && ('scpu'.indexOf(e.key) !== -1)) {
             e.preventDefault();
@@ -176,9 +181,8 @@
         });
     </script>
     
-    <!-- 經過最小化/混淆的原始碼，增加閱讀難度 -->
     <script>
-        const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml",proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,keywordInput=document.getElementById("keyword-input"),searchButton=document.getElementById("search-button"),statusEl=document.getElementById("status"),resultsSection=document.getElementById("search-results-section"),resultsHeader=resultsSection.querySelector("h2");function resetResults(){resultsSection.style.display="none",resultsSection.querySelector(".content").innerHTML="",resultsHeader.innerHTML=""}async function fetchAndProcessData(e){statusEl.innerHTML='<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...',searchButton.disabled=!0,keywordInput.disabled=!0;try{let t=await fetch(proxyUrl);if(!t.ok)throw new Error(`網路錯誤 (狀態碼: ${t.status})`);let o=await t.text(),r=new DOMParser().parseFromString(o,"text/html").querySelectorAll("tbody tr");e(r)}catch(e){statusEl.innerHTML=`<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${e.message}`}finally{searchButton.disabled=!1,keywordInput.disabled=!1}}function searchByKeyword(){resetResults();let e=keywordInput.value.trim();if(!e)return void(statusEl.innerHTML='<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！');fetchAndProcessData(t=>{let o=[];for(let r of t){let t=r.querySelector("td:nth-child(2)");t&&t.textContent.trim().toLowerCase().includes(e.toLowerCase())&&o.push(t.textContent.trim())}if(o.length>0){resultsSection.style.display="block";let t=`找到 ${o.length} 筆關於「<span class="highlight">${e}</span>」的事件`;resultsHeader.innerHTML=`<i class="bi bi-card-checklist"></i>${t}`;let r=new RegExp(e,"gi"),n=o.map(e=>{let t=e.replace(r,`<span class="highlight">$&</span>`);return`<div class="event-item">${t}</div>`}).join("");resultsSection.querySelector(".content").innerHTML=n,statusEl.innerHTML='<i class="bi bi-check-circle-fill"></i>搜尋完成！'}else statusEl.innerHTML=`<i class="bi bi-emoji-frown"></i>找不到與「${e}」相關的事件。`})}searchButton.addEventListener("click",searchByKeyword),keywordInput.addEventListener("keypress",e=>{if("Enter"===e.key)searchByKeyword()});
+        const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml",proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,keywordInput=document.getElementById("keyword-input"),searchButton=document.getElementById("search-button"),statusEl=document.getElementById("status"),resultsSection=document.getElementById("search-results-section"),resultsHeader=resultsSection.querySelector("h2"),homeButtonContainer=document.getElementById("home-button-container");function resetResults(){resultsSection.style.display="none",resultsSection.querySelector(".content").innerHTML="",resultsHeader.innerHTML="",homeButtonContainer.style.display="none"}async function fetchAndProcessData(e){statusEl.innerHTML='<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...',searchButton.disabled=!0,keywordInput.disabled=!0;try{let t=await fetch(proxyUrl);if(!t.ok)throw new Error(`網路錯誤 (狀態碼: ${t.status})`);let o=await t.text(),n=new DOMParser().parseFromString(o,"text/html").querySelectorAll("tbody tr");e(n)}catch(e){statusEl.innerHTML=`<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${e.message}`}finally{searchButton.disabled=!1,keywordInput.disabled=!1}}function searchByKeyword(){resetResults();let e=keywordInput.value.trim();e?fetchAndProcessData(t=>{let o=[];for(let n of t){let t=n.querySelector("td:nth-child(2)");t&&t.textContent.trim().toLowerCase().includes(e.toLowerCase())&&o.push(t.textContent.trim())}if(o.length>0){resultsSection.style.display="block";let t=`找到 ${o.length} 筆關於「<span class="highlight">${e}</span>」的事件`;resultsHeader.innerHTML=`<i class="bi bi-card-checklist"></i>${t}`;let n=new RegExp(e,"gi"),s=o.map(e=>{let t=e.replace(n,`<span class="highlight">$&</span>`);return`<div class="event-item">${t}</div>`}).join("");resultsSection.querySelector(".content").innerHTML=s,statusEl.innerHTML='<i class="bi bi-check-circle-fill"></i>搜尋完成！'}else statusEl.innerHTML=`<i class="bi bi-emoji-frown"></i>找不到與「${e}」相關的事件。`;homeButtonContainer.style.display="block"}):statusEl.innerHTML='<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！'}searchButton.addEventListener("click",searchByKeyword),keywordInput.addEventListener("keypress",e=>{"Enter"===e.key&&searchByKeyword()}),document.getElementById("back-to-home-btn").addEventListener("click",()=>location.reload());
     </script>
 </body>
 </html>
