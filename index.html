@@ -64,6 +64,12 @@
         .action-button:hover { background-color: var(--secondary-color); transform: translateY(-2px); color: white; }
         .action-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
         
+        /* Specific button colors */
+        #event-search-button { background-color: #27ae60; }
+        #event-search-button:hover { background-color: #229954; }
+        #divination-button { background-color: #f39c12; }
+        #divination-button:hover { background-color: #e67e22; }
+
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         #results-wrapper { margin-top: 30px; }
         .result-section { margin-bottom: 25px; display: none; }
@@ -146,7 +152,8 @@
             <input type="date" id="date-input">
             <button id="search-button" class="action-button"><i class="bi bi-search"></i>查詢</button>
             <button id="random-search-button" class="action-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
-            <a href="index2.html" class="action-button" style="background-color: #27ae60;"><i class="bi bi-card-text"></i>事件搜尋</a>
+            <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
+            <a href="index2.html" id="event-search-button" class="action-button"><i class="bi bi-card-text"></i>事件搜尋</a>
         </div>
         <div id="status">請選擇日期，回顧歷史的足跡</div>
         <div id="results-wrapper">
