@@ -80,6 +80,10 @@
         .fallback-btn { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 8px 15px; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
         .fallback-btn:hover { background-color: var(--primary-color); color: white; }
         
+        #back-to-home-btn:hover {
+            background-color: #c0392b !important;
+        }
+
         @media print {
           body * { display: none !important; }
         }
@@ -162,6 +166,11 @@
                 </div>
             </div>
         </div>
+        <div id="home-button-container" style="text-align: center; margin-top: 30px; display: none;">
+            <button id="back-to-home-btn" class="action-button" style="background-color: #e74c3c;">
+                <i class="bi bi-arrow-clockwise"></i>回首頁
+            </button>
+        </div>
     </div>
     
     <script>
@@ -183,6 +192,7 @@
         const todaySection = document.getElementById('today-events-section');
         const monthSection = document.getElementById('this-month-events-section');
         const fallbackSection = document.getElementById('fallback-options');
+        const homeButtonContainer = document.getElementById('home-button-container');
 
         function normalizeString(str) {
             if (!str) return '';
@@ -193,6 +203,7 @@
             todaySection.style.display = 'none';
             monthSection.style.display = 'none';
             fallbackSection.style.display = 'none';
+            homeButtonContainer.style.display = 'none';
             todaySection.querySelector('.content').innerHTML = '';
             monthSection.querySelector('.content').innerHTML = '';
         }
@@ -275,6 +286,7 @@
                     statusEl.innerHTML = `<i class="bi bi-emoji-frown"></i>在這一天，歷史似乎打盹了。`;
                     fallbackSection.style.display = 'block';
                 }
+                homeButtonContainer.style.display = 'block';
             });
         }
 
@@ -331,6 +343,7 @@
                 } else {
                     statusEl.innerHTML = `<i class="bi bi-search"></i>在指定範圍內沒有找到任何事件。`;
                 }
+                homeButtonContainer.style.display = 'block';
             });
         }
         
@@ -353,6 +366,7 @@
         document.getElementById('search-year-btn').addEventListener('click', () => searchByScope('year'));
         document.getElementById('search-month-btn').addEventListener('click', () => searchByScope('month'));
         randomSearchButton.addEventListener('click', randomSearch);
+        document.getElementById('back-to-home-btn').addEventListener('click', () => location.reload());
 
         document.addEventListener('DOMContentLoaded', () => {
             const defaultDate = new Date('1935-12-28');
