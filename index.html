@@ -6,7 +6,7 @@
     <title>苑史上的今天 - 事件查詢</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
@@ -99,7 +99,6 @@
                 align-items: center; 
             }
             
-            /* MODIFIED: This rule now only targets the input field */
             #search-area > #date-input {
                 width: 90%;
                 max-width: 400px;
@@ -115,7 +114,6 @@
                 color: var(--text-color);
             }
             
-            /* NEW: Wrapper for all buttons */
             .button-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -125,15 +123,14 @@
                 max-width: 400px;
             }
 
-            /* NEW: Style for buttons inside the group on mobile */
             .button-group > .action-button {
-                width: calc(50% - 5px); /* Two buttons per row, accounting for gap */
+                width: calc(50% - 5px);
                 height: auto;
-                padding: 12px 5px; /* Adjust padding for smaller size */
-                font-size: 1em; /* Smaller font */
+                padding: 12px 5px;
+                font-size: 1em;
                 margin-bottom: 0;
-                flex-grow: 1; /* Allow buttons to fill space evenly */
-                white-space: nowrap; /* Prevent text wrapping inside button */
+                flex-grow: 1;
+                white-space: nowrap;
             }
 
             .fallback-buttons { flex-direction: column; }
@@ -147,7 +144,6 @@
                 <h1><i class="bi bi-calendar-heart"></i>苑史上的今天</h1>
             </a>
         </header>
-        <!-- MODIFIED HTML: Added .button-group wrapper -->
         <div id="search-area">
             <input type="date" id="date-input">
             <div class="button-group">
@@ -183,8 +179,206 @@
     </div>
     
     <script>
-      // JavaScript remains unchanged
-      // ...
+        // 禁止組合鍵
+        document.addEventListener('keydown', function(e) {
+          if (e.ctrlKey && ('scpu'.indexOf(e.key) !== -1)) {
+            e.preventDefault();
+          }
+        });
+
+        // --- 恢復完整的 JavaScript 程式碼 ---
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
+
+        const dateInput = document.getElementById('date-input');
+        const searchButton = document.getElementById('search-button');
+        const randomSearchButton = document.getElementById('random-search-button');
+        const statusEl = document.getElementById('status');
+        const todaySection = document.getElementById('today-events-section');
+        const monthSection = document.getElementById('this-month-events-section');
+        const fallbackSection = document.getElementById('fallback-options');
+        const homeButtonContainer = document.getElementById('home-button-container');
+
+        function normalizeString(str) {
+            if (!str) return '';
+            return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+        }
+
+        function resetResultAreas() {
+            todaySection.style.display = 'none';
+            monthSection.style.display = 'none';
+            fallbackSection.style.display = 'none';
+            homeButtonContainer.style.display = 'none';
+            todaySection.querySelector('.content').innerHTML = '';
+            monthSection.querySelector('.content').innerHTML = '';
+        }
+
+        async function fetchAndProcessData(processor) {
+            statusEl.innerHTML = '<i class="bi bi-hourglass-split spinner"></i>正在時光機中穿梭...';
+            searchButton.disabled = true;
+            randomSearchButton.disabled = true;
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
+                const htmlText = await response.text();
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                const rows = doc.querySelectorAll('tbody tr');
+                processor(rows);
+            } catch (error) {
+                statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
+            } finally {
+                searchButton.disabled = false;
+                randomSearchButton.disabled = false;
+            }
+        }
+        
+        function searchForDate() {
+            resetResultAreas();
+            const selectedDate = dateInput.value;
+            if (!selectedDate) {
+                statusEl.innerHTML = '<i class="bi bi-exclamation-circle"></i>請先選擇一個有效的日期！';
+                return;
+            }
+            const dateObj = new Date(selectedDate);
+            const targetYear = dateObj.getFullYear();
+            const targetMonth = dateObj.getMonth() + 1;
+            const targetDay = dateObj.getDate();
+
+            fetchAndProcessData(rows => {
+                let todayEvents = [], thisMonthEvents = [];
+                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
+
+                for (const row of rows) {
+                    const dataCell = row.querySelector('td:nth-child(2)');
+                    if (dataCell) {
+                        const rawCellText = dataCell.textContent.trim();
+                        const normalizedText = normalizeString(rawCellText);
+                        const match = normalizedText.match(datePartsPattern);
+
+                        if (match) {
+                            const eventYear = parseInt(match[1], 10);
+                            const eventMonth = parseInt(match[2], 10);
+                            const eventDay = parseInt(match[3], 10);
+
+                            if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
+                                todayEvents.push(rawCellText);
+                            }
+                            if (eventMonth === targetMonth && eventDay === targetDay) {
+                                thisMonthEvents.push(rawCellText);
+                            }
+                        }
+                    }
+                }
+                
+                let foundSomething = false;
+                if (todayEvents.length > 0) {
+                    todaySection.style.display = 'block';
+                    todaySection.querySelector('h2').innerHTML = '<i class="bi bi-star-fill"></i>今天事件';
+                    todaySection.querySelector('.content').innerHTML = todayEvents.map(event => `<div class="event-item">${event}</div>`).join('');
+                    foundSomething = true;
+                }
+                
+                const uniqueThisMonthEvents = thisMonthEvents.filter(event => !todayEvents.includes(event));
+                if (uniqueThisMonthEvents.length > 0) {
+                    monthSection.style.display = 'block';
+                    monthSection.querySelector('.content').innerHTML = uniqueThisMonthEvents.map(event => `<div class="event-item">${event}</div>`).join('');
+                    foundSomething = true;
+                }
+
+                if (foundSomething) {
+                    statusEl.innerHTML = `<i class="bi bi-check-circle-fill"></i>查詢完成！`;
+                } else {
+                    statusEl.innerHTML = `<i class="bi bi-emoji-frown"></i>在這一天，歷史似乎打盹了。`;
+                    fallbackSection.style.display = 'block';
+                }
+                homeButtonContainer.style.display = 'block';
+            });
+        }
+
+        function searchByScope(scope) {
+            resetResultAreas();
+            const selectedDate = dateInput.value;
+            if (!selectedDate) {
+                statusEl.innerHTML = '<i class="bi bi-exclamation-circle"></i>請先選擇日期再擴大搜尋！';
+                return;
+            }
+            const dateObj = new Date(selectedDate);
+            let title;
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth() + 1;
+
+            if (scope === 'year') {
+                title = `<i class="bi bi-calendar-week"></i>${year}年的所有事件`;
+            } else {
+                title = `<i class="bi bi-calendar-month"></i>${month}月的所有事件`;
+            }
+
+            fetchAndProcessData(rows => {
+                let foundEvents = [];
+                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
+                const yearPattern = new RegExp(`^${year}年`);
+
+                for (const row of rows) {
+                    const dataCell = row.querySelector('td:nth-child(2)');
+                    if (dataCell) {
+                        const rawCellText = dataCell.textContent.trim();
+                        const normalizedText = normalizeString(rawCellText);
+                        
+                        if (scope === 'month') {
+                             const match = normalizedText.match(datePartsPattern);
+                             if (match) {
+                                 const eventMonth = parseInt(match[2], 10);
+                                 if(eventMonth === month) {
+                                     foundEvents.push(rawCellText);
+                                 }
+                             }
+                        } else {
+                            if (yearPattern.test(normalizedText)) {
+                                foundEvents.push(rawCellText);
+                            }
+                        }
+                    }
+                }
+                
+                if (foundEvents.length > 0) {
+                    todaySection.style.display = 'block';
+                    todaySection.querySelector('h2').innerHTML = title;
+                    todaySection.querySelector('.content').innerHTML = foundEvents.map(event => `<div class="event-item">${event}</div>`).join('');
+                    statusEl.innerHTML = `<i class="bi bi-check-circle-fill"></i>擴大搜尋完成！`;
+                } else {
+                    statusEl.innerHTML = `<i class="bi bi-search"></i>在指定範圍內沒有找到任何事件。`;
+                }
+                homeButtonContainer.style.display = 'block';
+            });
+        }
+        
+        function randomSearch() {
+            const startDate = new Date('1935-12-28');
+            const endDate = new Date(); 
+
+            const startTime = startDate.getTime();
+            const endTime = endDate.getTime();
+
+            const randomTime = startTime + Math.random() * (endTime - startTime);
+            const randomDate = new Date(randomTime);
+
+            dateInput.valueAsDate = randomDate;
+            searchForDate();
+        }
+
+        searchButton.addEventListener('click', searchForDate);
+        dateInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchForDate(); });
+        document.getElementById('search-year-btn').addEventListener('click', () => searchByScope('year'));
+        document.getElementById('search-month-btn').addEventListener('click', () => searchByScope('month'));
+        randomSearchButton.addEventListener('click', randomSearch);
+        document.getElementById('back-to-home-btn').addEventListener('click', () => location.reload());
+
+        // 這就是恢復預設查詢功能的關鍵程式碼
+        document.addEventListener('DOMContentLoaded', () => {
+            const defaultDate = new Date('1935-12-28');
+            dateInput.valueAsDate = defaultDate;
+            searchForDate();
+        });
     </script>
 </body>
 </html>
