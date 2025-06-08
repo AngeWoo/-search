@@ -102,7 +102,6 @@
                 align-items: center; 
             }
             
-            /* MODIFIED: This rule now only targets the input field */
             #search-area > #keyword-input {
                 width: 90%;
                 max-width: 400px;
@@ -118,7 +117,6 @@
                 color: var(--text-color);
             }
             
-            /* NEW: Wrapper for all buttons */
             .button-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -128,15 +126,14 @@
                 max-width: 400px;
             }
 
-            /* NEW: Style for buttons inside the group on mobile */
             .button-group > .action-button {
-                width: calc(50% - 5px); /* Two buttons per row, accounting for gap */
+                width: calc(50% - 5px);
                 height: auto;
-                padding: 12px 5px; /* Adjust padding for smaller size */
-                font-size: 1em; /* Smaller font */
+                padding: 12px 5px;
+                font-size: 1em;
                 margin-bottom: 0;
-                flex-grow: 1; /* Allow buttons to fill space evenly */
-                white-space: nowrap; /* Prevent text wrapping inside button */
+                flex-grow: 1;
+                white-space: nowrap;
             }
         }
     </style>
@@ -148,7 +145,6 @@
                 <h1><i class="bi bi-card-text"></i>真如苑史全文搜尋</h1>
             </a>
         </header>
-        <!-- MODIFIED HTML: Added .button-group wrapper -->
         <div id="search-area">
             <input type="text" id="keyword-input" placeholder="輸入關鍵字，例如：攝受心院...">
             <div class="button-group">
@@ -172,8 +168,15 @@
     </div>
     
     <script>
-      // JavaScript remains unchanged
-      // ...
+        document.addEventListener('keydown', function(e) {
+          if (e.ctrlKey && ('scpu'.indexOf(e.key) !== -1)) {
+            e.preventDefault();
+          }
+        });
+    </script>
+    
+    <script>
+        const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml",proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,keywordInput=document.getElementById("keyword-input"),searchButton=document.getElementById("search-button"),statusEl=document.getElementById("status"),resultsSection=document.getElementById("search-results-section"),resultsHeader=resultsSection.querySelector("h2"),homeButtonContainer=document.getElementById("home-button-container");function resetResults(){resultsSection.style.display="none",resultsSection.querySelector(".content").innerHTML="",resultsHeader.innerHTML="",homeButtonContainer.style.display="none"}async function fetchAndProcessData(e){statusEl.innerHTML='<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...',searchButton.disabled=!0,keywordInput.disabled=!0;try{let t=await fetch(proxyUrl);if(!t.ok)throw new Error(`網路錯誤 (狀態碼: ${t.status})`);let o=await t.text(),n=new DOMParser().parseFromString(o,"text/html").querySelectorAll("tbody tr");e(n)}catch(e){statusEl.innerHTML=`<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${e.message}`}finally{searchButton.disabled=!1,keywordInput.disabled=!1}}function searchByKeyword(){resetResults();let e=keywordInput.value.trim();e?fetchAndProcessData(t=>{let o=[];for(let n of t){let t=n.querySelector("td:nth-child(2)");t&&t.textContent.trim().toLowerCase().includes(e.toLowerCase())&&o.push(t.textContent.trim())}if(o.length>0){resultsSection.style.display="block";let t=`找到 ${o.length} 筆關於「<span class="highlight">${e}</span>」的事件`;resultsHeader.innerHTML=`<i class="bi bi-card-checklist"></i>${t}`;let n=new RegExp(e,"gi"),s=o.map(e=>{let t=e.replace(n,`<span class="highlight">$&</span>`);return`<div class="event-item">${t}</div>`}).join("");resultsSection.querySelector(".content").innerHTML=s,statusEl.innerHTML='<i class="bi bi-check-circle-fill"></i>搜尋完成！'}else statusEl.innerHTML=`<i class="bi bi-emoji-frown"></i>找不到與「${e}」相關的事件。`;homeButtonContainer.style.display="block"}):statusEl.innerHTML='<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！'}searchButton.addEventListener("click",searchByKeyword),keywordInput.addEventListener("keypress",e=>{"Enter"===e.key&&searchByKeyword()}),document.getElementById("back-to-home-btn").addEventListener("click",()=>location.reload());
     </script>
 </body>
 </html>
