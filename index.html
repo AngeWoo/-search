@@ -46,21 +46,56 @@
         
         h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
         h1 i { font-size: 0.9em; }
-        #search-area { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        
+        #search-area {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;    
+            gap: 15px;              
+            margin-bottom: 20px;
+        }
         
         #date-input { 
-            flex-grow: 1; 
+            width: 100%;
+            max-width: 450px; 
             padding: 12px 15px; 
             border: 1px solid var(--border-color); 
             border-radius: 10px; font-size: 1em; 
             font-family: inherit; 
             font-weight: 500; 
             color: var(--text-color); 
-            transition: all 0.3s; 
+            transition: all 0.3s;
+            text-align: center; 
         }
         #date-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(106, 137, 204, 0.2); }
         
-        .action-button { padding: 12px 20px; border: none; background-color: var(--primary-color); color: white; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; text-decoration: none; }
+        /* Base style for button group container (Desktop) */
+        .button-group {
+            display: flex;
+            flex-wrap: nowrap; /* Ensures buttons stay on one line for desktop */
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px; 
+        }
+
+        .action-button {
+            padding: 12px 20px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+            white-space: nowrap; /* Prevent text within button from wrapping */
+        }
         .action-button:hover { background-color: var(--secondary-color); transform: translateY(-2px); color: white; }
         .action-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
         
@@ -93,44 +128,28 @@
             body { font-size: 17px; }
             #container { margin: 20px 10px; padding: 20px; }
             h1 { font-size: 1.8em; gap: 10px; }
-
-            #search-area { 
-                flex-direction: column;
-                align-items: center; 
-            }
             
             #search-area > #date-input {
-                width: 90%;
-                max-width: 400px;
+                width: 90%; 
+                max-width: 400px; 
                 height: 54px;
-                padding: 0 15px;
+                padding: 0 15px; 
                 font-size: 1.2em;
                 line-height: 54px;
-                border-radius: 10px;
-                text-align: center;
-                margin-bottom: 10px;
-                background-color: #f8f9fa;
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
+                background-color: #f8f9fa; 
             }
             
             .button-group {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 10px;
-                width: 90%;
-                max-width: 400px;
+                width: 90%; 
+                max-width: 400px; 
+                flex-wrap: wrap; /* Allows buttons to wrap on mobile */
             }
 
             .button-group > .action-button {
-                width: calc(50% - 5px);
-                height: auto;
-                padding: 12px 5px;
-                font-size: 1em;
-                margin-bottom: 0;
-                flex-grow: 1;
-                white-space: nowrap;
+                width: calc(50% - 5px); 
+                padding: 12px 5px; 
+                flex-grow: 1; 
+                /* white-space: nowrap; -- Already in base, can be kept or removed if mobile needs wrapping text inside button */
             }
 
             .fallback-buttons { flex-direction: column; }
