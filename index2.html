@@ -47,20 +47,55 @@
         
         h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
         h1 i { font-size: 0.9em; }
-        #search-area { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+
+        /* --- DESKTOP FIRST: SEARCH AREA --- */
+        #search-area {
+            display: flex;
+            flex-direction: column; /* Stack input and button group */
+            align-items: center;    /* Center them horizontally */
+            gap: 15px;              /* Space between input and button group */
+            margin-bottom: 20px;
+        }
         
         #keyword-input { 
-            flex-grow: 1; 
+            /* flex-grow: 1; -- Removed */
+            width: 100%;
+            max-width: 450px; /* Adjusted for desktop */
             padding: 12px 15px; 
             border: 1px solid var(--border-color); 
             border-radius: 10px; font-size: 1em; 
             font-family: inherit; font-weight: 500; 
             color: var(--text-color); 
-            transition: all 0.3s; 
+            transition: all 0.3s;
+            /* text-align: left; by default for input type text */
         }
         #keyword-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.2); }
         
-        .action-button { padding: 12px 20px; border: none; color: white; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; text-decoration: none; }
+        /* Default style for button group container */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 550px; /* Adjusted for 3 buttons (one long) on desktop */
+        }
+
+        .action-button {
+            padding: 12px 20px;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
         #search-button { background-color: var(--primary-color); }
         #return-button { background-color: var(--return-button-color); }
         .action-button:hover { transform: translateY(-2px); color: white; }
@@ -97,42 +132,27 @@
             #container { margin: 20px 10px; padding: 20px; }
             h1 { font-size: 1.8em; gap: 10px; }
             
-            #search-area { 
-                flex-direction: column;
-                align-items: center; 
-            }
-            
             #search-area > #keyword-input {
-                width: 90%;
-                max-width: 400px;
+                width: 90%; /* Mobile specific width */
+                max-width: 400px; /* Mobile specific max-width */
                 height: 54px;
-                padding: 0 15px;
+                padding: 0 15px; /* Mobile specific padding */
                 font-size: 1.2em;
                 line-height: 54px;
-                border-radius: 10px;
-                text-align: center;
-                margin-bottom: 10px;
-                background-color: #f8f9fa;
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
+                text-align: center; /* Mobile specific text-align */
+                /* margin-bottom: 10px; -- Removed, using gap on #search-area */
+                background-color: #f8f9fa; /* Mobile specific bg */
             }
             
             .button-group {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 10px;
-                width: 90%;
-                max-width: 400px;
+                width: 90%; /* Mobile specific width */
+                max-width: 400px; /* Mobile specific max-width */
             }
 
             .button-group > .action-button {
-                width: calc(50% - 5px);
-                height: auto;
-                padding: 12px 5px;
-                font-size: 1em;
-                margin-bottom: 0;
-                flex-grow: 1;
+                width: calc(50% - 5px); /* Mobile specific: 2 buttons per row, 3rd button on new line */
+                padding: 12px 5px; /* Mobile specific padding */
+                flex-grow: 1; /* Mobile specific: fill width in 2-column setup */
                 white-space: nowrap;
             }
         }
