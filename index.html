@@ -103,6 +103,8 @@
         #event-search-button:hover { background-color: #229954; }
         #divination-button { background-color: #f39c12; }
         #divination-button:hover { background-color: #e67e22; }
+        #today-search-button { background-color: #1abc9c; }
+        #today-search-button:hover { background-color: #16a085; }
 
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         #results-wrapper { margin-top: 30px; }
@@ -168,6 +170,7 @@
             <div class="button-group">
                 <button id="search-button" class="action-button"><i class="bi bi-search"></i>查詢</button>
                 <button id="random-search-button" class="action-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
+                <button id="today-search-button" class="action-button"><i class="bi bi-calendar-event"></i>今日事件</button>
                 <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
                 <a href="index2.html" id="event-search-button" class="action-button"><i class="bi bi-card-text"></i>事件搜尋</a>
             </div>
@@ -212,6 +215,7 @@
         const dateInput = document.getElementById('date-input');
         const searchButton = document.getElementById('search-button');
         const randomSearchButton = document.getElementById('random-search-button');
+        const todaySearchButton = document.getElementById('today-search-button');
         const statusEl = document.getElementById('status');
         const todaySection = document.getElementById('today-events-section');
         const monthSection = document.getElementById('this-month-events-section');
@@ -371,6 +375,11 @@
             });
         }
         
+        function searchForToday() {
+            dateInput.valueAsDate = new Date();
+            searchForDate();
+        }
+
         function randomSearch() {
             const startDate = new Date('1935-12-28');
             const endDate = new Date(); 
@@ -390,6 +399,7 @@
         document.getElementById('search-year-btn').addEventListener('click', () => searchByScope('year'));
         document.getElementById('search-month-btn').addEventListener('click', () => searchByScope('month'));
         randomSearchButton.addEventListener('click', randomSearch);
+        todaySearchButton.addEventListener('click', searchForToday);
         document.getElementById('back-to-home-btn').addEventListener('click', () => location.reload());
 
         // 這就是恢復預設查詢功能的關鍵程式碼
