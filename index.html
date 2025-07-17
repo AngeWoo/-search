@@ -278,21 +278,26 @@
             statusEl.innerHTML = '<i class="bi bi-hourglass-split spinner"></i>正在時光機中穿梭...';
             searchButton.disabled = true;
             randomSearchButton.disabled = true;
+            console.log('Attempting to fetch data from:', sheetUrl); // 新增 log
             try {
                 // 直接從 Google Sheet URL 獲取數據
                 const response = await fetch(sheetUrl); 
-                if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
+                if (!response.ok) {
+                    console.error('Fetch response not OK:', response.status, response.statusText); // 新增 log
+                    throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
+                }
                 const csvText = await response.text();
+                console.log('Successfully fetched CSV text (first 500 chars):', csvText.substring(0, 500) + (csvText.length > 500 ? '...' : '')); // 新增 log
                 
                 // 解析 CSV 資料
                 const lines = csvText.split('\n');
+                console.log('CSV lines count:', lines.length); // 新增 log
                 const dataRows = [];
                 // 假設第一行是標題行，從第二行開始處理
                 for (let i = 1; i < lines.length; i++) { 
                     const line = lines[i].trim();
                     if (line) {
                         // 更可靠的 CSV 分割：匹配逗號，但忽略引號內的逗號
-                        // 這是處理 CSV 欄位可能包含逗號的關鍵
                         const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
                         
                         // 移除每個欄位兩側的引號，並去除多餘空格
@@ -301,9 +306,14 @@
                         // 確保至少有兩欄 (日期和事件)
                         if (cleanedColumns.length >= 2) {
                              dataRows.push(cleanedColumns);
+                             // console.log(`Processed row ${i}:`, cleanedColumns); // 每個處理後的行都打 log，可能很多，必要時再開啟
+                        } else {
+                            console.warn(`Skipped malformed row ${i}:`, line); // 新增 log
                         }
                     }
                 }
+                console.log('Final parsed dataRows count:', dataRows.length); // 新增 log
+                console.log('First 5 parsed dataRows:', dataRows.slice(0, 5)); // 新增 log
                 processor(dataRows); // 將解析後的二維陣列傳遞給處理器
             } catch (error) {
                 statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
@@ -325,6 +335,7 @@
             const targetYear = dateObj.getFullYear();
             const targetMonth = dateObj.getMonth() + 1;
             const targetDay = dateObj.getDate();
+            console.log(`Searching for date: ${targetYear}年${targetMonth}月${targetDay}日`); // 新增 log
 
             fetchAndProcessData(rows => { // rows 現在是一個二維陣列，每項是 [日期字串, 事件描述字串]
                 let todayEvents = [], thisMonthEvents = [];
@@ -336,10 +347,17 @@
                     const eventDescription = row[1] ? row[1].trim() : ''; // 取得事件描述欄位 (CSV 第二欄)
 
                     // 如果 rawDateText 或 eventDescription 為空，則跳過此行，避免錯誤
-                    if (!rawDateText || !eventDescription) continue; 
+                    if (!rawDateText || !eventDescription) {
+                        // console.log('Skipping row due to empty date or description:', row); // 太多 log 時可註解
+                        continue; 
+                    }
 
                     const normalizedDateText = normalizeString(rawDateText);
                     const match = normalizedDateText.match(datePartsPattern);
+
+                    // console.log('Processing row:', rawDateText, eventDescription); // 除錯用：顯示原始行
+                    // console.log('Normalized Date Text:', normalizedDateText); // 除錯用：顯示標準化後的日期文字
+                    // console.log('Date Regex Match:', match); // 除錯用：顯示正則匹配結果
 
                     if (match) {
                         const eventYear = parseInt(match[1], 10);
@@ -350,15 +368,21 @@
 
                         if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
                             todayEvents.push(fullEventString);
+                            // console.log('Match found for today:', fullEventString); // 新增 log
                         }
                         // 如果只需要顯示與當前選定日期同月同日的事件 (不限年份)
                         // 且該事件尚未被納入todayEvents，則加入thisMonthEvents
                         if (eventMonth === targetMonth && eventDay === targetDay) {
                              thisMonthEvents.push(fullEventString);
                         }
+                    } else {
+                        // console.log('No date match for:', normalizedDateText); // 除錯用：顯示未能匹配的日期
                     }
                 }
                 
+                console.log('Today Events Found:', todayEvents.length, todayEvents); // 新增 log
+                console.log('This Month Events Found (before filtering):', thisMonthEvents.length, thisMonthEvents); // 新增 log
+
                 let foundSomething = false;
                 if (todayEvents.length > 0) {
                     todaySection.style.display = 'block';
@@ -369,6 +393,8 @@
                 
                 // 修正：篩選出不在今天事件中的本月事件，避免重複顯示
                 const uniqueThisMonthEvents = thisMonthEvents.filter(event => !todayEvents.includes(event));
+                console.log('Unique This Month Events Found:', uniqueThisMonthEvents.length, uniqueThisMonthEvents); // 新增 log
+
                 if (uniqueThisMonthEvents.length > 0) {
                     monthSection.style.display = 'block';
                     monthSection.querySelector('h2').innerHTML = '<i class="bi bi-calendar3"></i>本月事件'; // 確保標題正確
@@ -397,6 +423,7 @@
             let title;
             const year = dateObj.getFullYear();
             const month = dateObj.getMonth() + 1;
+            console.log(`Searching by scope: ${scope}. Target Year: ${year}, Target Month: ${month}`); // 新增 log
 
             if (scope === 'year') {
                 title = `<i class="bi bi-calendar-week"></i>${year}年的所有事件`;
@@ -433,6 +460,8 @@
                     }
                 }
                 
+                console.log(`Events found for scope '${scope}':`, foundEvents.length, foundEvents); // 新增 log
+
                 if (foundEvents.length > 0) {
                     todaySection.style.display = 'block';
                     todaySection.querySelector('h2').innerHTML = title;
