@@ -242,8 +242,8 @@
         });
 
         // --- 恢復完整的 JavaScript 程式碼 ---
-        // 注意：這裡已將 sheetUrl 恢復為原始正確的連結
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlYAWx-/pubhtml';
+        // 將 sheetUrl 改為 CSV 導出的 URL
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pub?gid=0&single=true&output=csv';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
 
         const dateInput = document.getElementById('date-input');
@@ -277,10 +277,21 @@
             try {
                 const response = await fetch(proxyUrl);
                 if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
-                const htmlText = await response.text();
-                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                const rows = doc.querySelectorAll('tbody tr');
-                processor(rows);
+                const csvText = await response.text();
+                
+                // 解析 CSV 資料
+                const lines = csvText.split('\n');
+                const dataRows = [];
+                // 假設第一行是標題行，從第二行開始處理
+                for (let i = 1; i < lines.length; i++) { 
+                    const line = lines[i].trim();
+                    if (line) {
+                        // 使用逗號分隔，簡單處理，如果您的資料包含帶逗號的引號字串，可能需要更複雜的 CSV 解析庫
+                        const columns = line.split(','); 
+                        dataRows.push(columns);
+                    }
+                }
+                processor(dataRows); // 將解析後的二維陣列傳遞給處理器
             } catch (error) {
                 statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
             } finally {
@@ -301,28 +312,27 @@
             const targetMonth = dateObj.getMonth() + 1;
             const targetDay = dateObj.getDate();
 
-            fetchAndProcessData(rows => {
+            fetchAndProcessData(rows => { // rows 現在是一個二維陣列
                 let todayEvents = [], thisMonthEvents = [];
                 const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
 
                 for (const row of rows) {
-                    const dataCell = row.querySelector('td:nth-child(2)');
-                    if (dataCell) {
-                        const rawCellText = dataCell.textContent.trim();
-                        const normalizedText = normalizeString(rawCellText);
-                        const match = normalizedText.match(datePartsPattern);
+                    // 根據 Google Sheets 的欄位順序，日期資訊應該在第二欄 (索引為 1)
+                    const rawCellText = row[1] ? row[1].trim() : ''; // 確保欄位存在
+                    const normalizedText = normalizeString(rawCellText);
+                    const match = normalizedText.match(datePartsPattern);
 
-                        if (match) {
-                            const eventYear = parseInt(match[1], 10);
-                            const eventMonth = parseInt(match[2], 10);
-                            const eventDay = parseInt(match[3], 10);
+                    if (match) {
+                        const eventYear = parseInt(match[1], 10);
+                        const eventMonth = parseInt(match[2], 10);
+                        const eventDay = parseInt(match[3], 10);
 
-                            if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
-                                todayEvents.push(rawCellText);
-                            }
-                            if (eventMonth === targetMonth && eventDay === targetDay) {
-                                thisMonthEvents.push(rawCellText);
-                            }
+                        if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
+                            todayEvents.push(rawCellText);
+                        }
+                        // 確保本月事件不會重複加入今天事件
+                        if (eventMonth === targetMonth && eventDay === targetDay) {
+                            thisMonthEvents.push(rawCellText);
                         }
                     }
                 }
@@ -370,29 +380,27 @@
                 title = `<i class="bi bi-calendar-month"></i>${month}月的所有事件`;
             }
 
-            fetchAndProcessData(rows => {
+            fetchAndProcessData(rows => { // rows 現在是一個二維陣列
                 let foundEvents = [];
                 const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
                 const yearPattern = new RegExp(`^${year}年`);
 
                 for (const row of rows) {
-                    const dataCell = row.querySelector('td:nth-child(2)');
-                    if (dataCell) {
-                        const rawCellText = dataCell.textContent.trim();
-                        const normalizedText = normalizeString(rawCellText);
-                        
-                        if (scope === 'month') {
-                             const match = normalizedText.match(datePartsPattern);
-                             if (match) {
-                                 const eventMonth = parseInt(match[2], 10);
-                                 if(eventMonth === month) {
-                                     foundEvents.push(rawCellText);
-                                 }
+                    // 根據 Google Sheets 的欄位順序，日期資訊應該在第二欄 (索引為 1)
+                    const rawCellText = row[1] ? row[1].trim() : ''; // 確保欄位存在
+                    const normalizedText = normalizeString(rawCellText);
+                    
+                    if (scope === 'month') {
+                         const match = normalizedText.match(datePartsPattern);
+                         if (match) {
+                             const eventMonth = parseInt(match[2], 10);
+                             if(eventMonth === month) {
+                                 foundEvents.push(rawCellText);
                              }
-                        } else {
-                            if (yearPattern.test(normalizedText)) {
-                                foundEvents.push(rawCellText);
-                            }
+                         }
+                    } else { // scope === 'year'
+                        if (yearPattern.test(normalizedText)) {
+                            foundEvents.push(rawCellText);
                         }
                     }
                 }
