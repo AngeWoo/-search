@@ -76,7 +76,7 @@
             justify-content: center;
             gap: 10px;
             width: 100%;
-            max-width: 600px; 
+            /* Removed max-width to allow more space for buttons on desktop */
         }
 
         .action-button {
@@ -209,7 +209,7 @@
         });
 
         // --- 恢復完整的 JavaScript 程式碼 ---
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlYAEQx-/pubhtml';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
 
         const dateInput = document.getElementById('date-input');
