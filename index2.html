@@ -94,10 +94,12 @@
         }
 
         .button-row-bottom .action-button {
-            flex: 1; /* Distribute space evenly */
-            max-width: calc(33.333% - 6.666px); /* Three buttons per row with gap */
+            /* This single button should take full width of its row on desktop */
+            width: 100%; /* Make it fill the entire width of button-row-bottom */
+            /* 不再需要 max-width 覆蓋，讓它佔滿父容器 */
         }
 
+        /* General action button styles (applies to all) */
         .action-button {
             padding: 12px 20px;
             border: none;
@@ -174,11 +176,12 @@
                 display: contents; 
             }
 
-            .action-button {
+            /* Apply 50% width to ALL action buttons on mobile */
+            .action-button { /* 不再需要 `>`，因為 `display: contents` 使其成為 `button-group` 的直接子元素 */
                 width: calc(50% - 5px); /* Mobile specific: 2 buttons per row */
                 padding: 12px 5px; 
                 flex-grow: 1; 
-                max-width: none; /* Remove desktop max-width constraints */
+                max-width: none; /* 移除桌機的 max-width 限制 */
             }
         }
     </style>
