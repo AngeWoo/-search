@@ -244,7 +244,6 @@
         // --- 恢復完整的 JavaScript 程式碼 ---
         // 直接使用 Google Sheets 的 CSV URL，不再透過 allorigins.win 代理
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pub?gid=0&single=true&output=csv';
-        // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`; // 移除此行
 
         const dateInput = document.getElementById('date-input');
         const searchButton = document.getElementById('search-button');
@@ -280,7 +279,6 @@
             randomSearchButton.disabled = true;
             console.log('Attempting to fetch data from:', sheetUrl); // 新增 log
             try {
-                // 直接從 Google Sheet URL 獲取數據
                 const response = await fetch(sheetUrl); 
                 if (!response.ok) {
                     console.error('Fetch response not OK:', response.status, response.statusText); // 新增 log
@@ -297,18 +295,18 @@
                 for (let i = 1; i < lines.length; i++) { 
                     const line = lines[i].trim();
                     if (line) {
-                        // 更可靠的 CSV 分割：匹配逗號，但忽略引號內的逗號
-                        const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-                        
-                        // 移除每個欄位兩側的引號，並去除多餘空格
-                        const cleanedColumns = columns.map(col => col.replace(/^"|"$/g, '').trim());
-                        
-                        // 確保至少有兩欄 (日期和事件)
-                        if (cleanedColumns.length >= 2) {
-                             dataRows.push(cleanedColumns);
-                             // console.log(`Processed row ${i}:`, cleanedColumns); // 每個處理後的行都打 log，可能很多，必要時再開啟
+                        // *** 修正點：根據實際的 CSV 格式，使用更簡單的分割邏輯
+                        // 嘗試找到日期字串後的第一個空格，將其分割成兩部分
+                        const datePatternForSplit = /(\d{4}年\d{1,2}月\d{1,2}日)\s*(.*)/;
+                        const match = line.match(datePatternForSplit);
+
+                        if (match && match.length >= 3) {
+                            const datePart = match[1].trim(); // 第一組是日期
+                            const eventPart = match[2].trim(); // 第二組是事件描述
+                            dataRows.push([datePart, eventPart]);
+                            // console.log(`Processed row ${i}:`, [datePart, eventPart]); // 每個處理後的行都打 log，必要時再開啟
                         } else {
-                            console.warn(`Skipped malformed row ${i}:`, line); // 新增 log
+                            console.warn(`Skipped malformed row ${i} (no date pattern match or insufficient columns):`, line); // 新增 log
                         }
                     }
                 }
@@ -340,11 +338,11 @@
             fetchAndProcessData(rows => { // rows 現在是一個二維陣列，每項是 [日期字串, 事件描述字串]
                 let todayEvents = [], thisMonthEvents = [];
                 // 修正日期解析正則表達式，使其更嚴謹地匹配開頭的日期部分
-                const datePartsPattern = /^(\d+)年(\d+)月(\d+)日/; 
+                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/; 
 
                 for (const row of rows) {
-                    const rawDateText = row[0] ? row[0].trim() : ''; // 取得日期欄位 (CSV 第一欄)
-                    const eventDescription = row[1] ? row[1].trim() : ''; // 取得事件描述欄位 (CSV 第二欄)
+                    const rawDateText = row[0]; // 取得日期欄位 (CSV 第一欄)
+                    const eventDescription = row[1]; // 取得事件描述欄位 (CSV 第二欄)
 
                     // 如果 rawDateText 或 eventDescription 為空，則跳過此行，避免錯誤
                     if (!rawDateText || !eventDescription) {
@@ -433,12 +431,12 @@
 
             fetchAndProcessData(rows => { // rows 現在是一個二維陣列
                 let foundEvents = [];
-                const datePartsPattern = /^(\d+)年(\d+)月(\d+)日/;
+                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
                 const yearPattern = new RegExp(`^${year}年`);
 
                 for (const row of rows) {
-                    const rawDateText = row[0] ? row[0].trim() : ''; 
-                    const eventDescription = row[1] ? row[1].trim() : '';
+                    const rawDateText = row[0]; 
+                    const eventDescription = row[1];
 
                     if (!rawDateText || !eventDescription) continue; 
 
@@ -509,4 +507,4 @@
         });
     </script>
 </body>
-</html>
+</html>```
