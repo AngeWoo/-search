@@ -55,6 +55,7 @@
             margin-bottom: 20px;
         }
         
+        /* 電腦版日期輸入框樣式 (恢復原始) */
         #date-input { 
             width: 100%;
             max-width: 450px; 
@@ -69,17 +70,17 @@
         }
         #date-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(106, 137, 204, 0.2); }
         
-        /* Base style for button group container (Desktop) */
+        /* 電腦版按鈕組容器樣式 (恢復原始) */
         .button-group {
             display: flex;
             flex-direction: column; /* Stack rows vertically */
             justify-content: center; /* Center rows horizontally */
             gap: 10px; /* Gap between button rows */
             width: 100%;
-            max-width: 600px; 
+            max-width: 600px; /* 電腦版按鈕組最大寬度 (恢復原始) */
         }
 
-        /* Styles for button rows (Desktop) */
+        /* 電腦版按鈕行樣式 (恢復原始) */
         .button-row-top,
         .button-row-bottom {
             display: flex;
@@ -88,7 +89,7 @@
             width: 100%; /* Make rows take full width of button-group */
         }
 
-        /* Adjust button widths for desktop layout */
+        /* 電腦版按鈕寬度樣式 (恢復原始) */
         .button-row-top .action-button {
             flex: 1; /* Distribute space evenly */
             max-width: calc(50% - 5px); /* Two buttons per row with gap */
@@ -100,6 +101,7 @@
         }
 
 
+        /* 全局按鈕樣式 (恢復原始，white-space: nowrap; 在這裡) */
         .action-button {
             padding: 12px 20px;
             border: none;
@@ -114,8 +116,8 @@
             justify-content: center;
             gap: 8px;
             transition: all 0.3s;
-            text-decoration: none;
             white-space: nowrap; /* Prevent text within button from wrapping */
+            text-decoration: none;
         }
         .action-button:hover { background-color: var(--secondary-color); transform: translateY(-2px); color: white; }
         .action-button:disabled { background-color: #b0bec5; cursor: not-allowed; transform: none; }
@@ -147,14 +149,16 @@
 
         @media print { body * { display: none !important; } }
 
+        /* 手機瀏覽樣式 (僅在此媒體查詢內修改) */
         @media (max-width: 600px) {
             body { font-size: 17px; }
             #container { margin: 20px 10px; padding: 20px; }
             h1 { font-size: 1.8em; gap: 10px; }
             
+            /* 手機版日期輸入框寬度調整 */
             #search-area > #date-input {
-                width: 90%; 
-                max-width: 400px; 
+                width: 95%; 
+                max-width: 480px; /* 手機版日期輸入框最大寬度加寬 */
                 height: 54px;
                 padding: 0 15px; 
                 font-size: 1.2em;
@@ -162,27 +166,42 @@
                 background-color: #f8f9fa; 
             }
             
+            /* 手機版按鈕組容器樣式：總寬度與日期框對齊 */
             .button-group {
-                flex-direction: row; /* Reset to row for mobile */
-                flex-wrap: wrap; /* Allows buttons to wrap on mobile */
-                width: 90%; 
-                max-width: 400px; 
-                /* gap is already 10px from base, which works for wrapped items */
+                width: 95%; 
+                max-width: 480px; /* 按鈕組總寬度與日期框對齊並加寬 */
+                /* 繼承桌面版 flex-direction: column; 和 justify-content: center; */
+                /* 繼承桌面版 gap: 10px; */
             }
 
-            /* For mobile, make the row wrappers disappear and let buttons be direct flex items of .button-group */
+            /* 手機版按鈕行樣式：確保每行按鈕寬度一致 */
             .button-row-top,
             .button-row-bottom {
-                display: contents; 
+                /* 繼承桌面版 display: flex; justify-content: center; gap: 10px; */
+                width: 100%; /* 確保按鈕行佔滿按鈕組的寬度 */
             }
 
+            /* 手機版按鈕樣式：調整內邊距和字體大小 */
             .action-button {
-                width: calc(50% - 5px); /* Two buttons per row for mobile */
-                padding: 12px 5px; 
-                flex-grow: 1; 
-                max-width: none; /* Remove desktop max-width constraints */
+                padding: 14px 8px; /* 增加按鈕內邊距，讓按鈕更大更好按 */
+                font-size: 0.95em; /* 稍微調整字體大小 */
+                /* white-space: nowrap; 保持全局生效 */
             }
 
+            /* 手機版按鈕寬度分配：讓按鈕能夠完整顯示文字 */
+            .button-row-top .action-button {
+                flex: 1; /* 第一行兩個按鈕平均分配空間 */
+                max-width: calc(50% - 5px); /* 確保兩個按鈕能並排且有間隙 */
+                min-width: 140px; /* 增加最小寬度，讓按鈕更寬 */
+            }
+
+            .button-row-bottom .action-button {
+                flex: 1; /* 第二行三個按鈕平均分配空間 */
+                max-width: calc(33.333% - 6.666px); /* 確保三個按鈕能並排且有間隙 */
+                min-width: 100px; /* 設定最小寬度確保文字不被壓縮 */
+            }
+
+            /* 確保 fallback 按鈕在手機上垂直堆疊 */
             .fallback-buttons { flex-direction: column; }
         }
     </style>
@@ -480,13 +499,10 @@
         function randomSearch() {
             const startDate = new Date('1935-12-28');
             const endDate = new Date(); 
-
             const startTime = startDate.getTime();
             const endTime = endDate.getTime();
-
             const randomTime = startTime + Math.random() * (endTime - startTime);
             const randomDate = new Date(randomTime);
-
             dateInput.valueAsDate = randomDate;
             searchForDate();
         }
@@ -507,4 +523,4 @@
         });
     </script>
 </body>
-</html>```
+</html>
