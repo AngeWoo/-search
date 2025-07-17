@@ -48,37 +48,54 @@
         h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 2.2em; display: flex; align-items: center; justify-content: center; gap: 15px; }
         h1 i { font-size: 0.9em; }
 
-        /* --- DESKTOP FIRST: SEARCH AREA --- */
         #search-area {
             display: flex;
-            flex-direction: column; /* Stack input and button group */
-            align-items: center;    /* Center them horizontally */
-            gap: 15px;              /* Space between input and button group */
+            flex-direction: column; 
+            align-items: center;    
+            gap: 15px;              
             margin-bottom: 20px;
         }
         
         #keyword-input { 
-            /* flex-grow: 1; -- Removed */
             width: 100%;
-            max-width: 450px; /* Adjusted for desktop */
+            max-width: 450px; 
             padding: 12px 15px; 
             border: 1px solid var(--border-color); 
             border-radius: 10px; font-size: 1em; 
             font-family: inherit; font-weight: 500; 
             color: var(--text-color); 
             transition: all 0.3s;
-            /* text-align: left; by default for input type text */
         }
         #keyword-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.2); }
         
-        /* Default style for button group container */
+        /* Base style for button group container (Desktop) */
         .button-group {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+            flex-direction: column; /* Stack rows vertically */
+            justify-content: center; /* Center rows horizontally */
+            gap: 10px; /* Gap between button rows */
             width: 100%;
-            max-width: 550px; /* Adjusted for 3 buttons (one long) on desktop */
+            max-width: 600px; /* Consistent with index.html */
+        }
+
+        /* Styles for button rows (Desktop) */
+        .button-row-top,
+        .button-row-bottom {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Gap between buttons within the row */
+            width: 100%; /* Make rows take full width of button-group */
+        }
+
+        /* Adjust button widths for desktop layout */
+        .button-row-top .action-button {
+            flex: 1; /* Distribute space evenly */
+            max-width: calc(50% - 5px); /* Two buttons per row with gap */
+        }
+
+        .button-row-bottom .action-button {
+            flex: 1; /* Distribute space evenly */
+            max-width: calc(33.333% - 6.666px); /* Three buttons per row with gap */
         }
 
         .action-button {
@@ -95,6 +112,7 @@
             gap: 8px;
             transition: all 0.3s;
             text-decoration: none;
+            white-space: nowrap; /* Prevent text within button from wrapping */
         }
         #search-button { background-color: var(--primary-color); }
         #return-button { background-color: var(--return-button-color); }
@@ -133,27 +151,34 @@
             h1 { font-size: 1.8em; gap: 10px; }
             
             #search-area > #keyword-input {
-                width: 90%; /* Mobile specific width */
-                max-width: 400px; /* Mobile specific max-width */
+                width: 90%; 
+                max-width: 400px; 
                 height: 54px;
-                padding: 0 15px; /* Mobile specific padding */
+                padding: 0 15px; 
                 font-size: 1.2em;
                 line-height: 54px;
-                text-align: center; /* Mobile specific text-align */
-                /* margin-bottom: 10px; -- Removed, using gap on #search-area */
-                background-color: #f8f9fa; /* Mobile specific bg */
+                text-align: center; 
+                background-color: #f8f9fa; 
             }
             
             .button-group {
-                width: 90%; /* Mobile specific width */
-                max-width: 400px; /* Mobile specific max-width */
+                flex-direction: row; /* Reset to row for mobile */
+                flex-wrap: wrap; /* Allows buttons to wrap on mobile */
+                width: 90%; 
+                max-width: 400px; 
             }
 
-            .button-group > .action-button {
-                width: calc(50% - 5px); /* Mobile specific: 2 buttons per row, 3rd button on new line */
-                padding: 12px 5px; /* Mobile specific padding */
-                flex-grow: 1; /* Mobile specific: fill width in 2-column setup */
-                white-space: nowrap;
+            /* For mobile, make the row wrappers disappear and let buttons be direct flex items of .button-group */
+            .button-row-top,
+            .button-row-bottom {
+                display: contents; 
+            }
+
+            .action-button {
+                width: calc(50% - 5px); /* Mobile specific: 2 buttons per row */
+                padding: 12px 5px; 
+                flex-grow: 1; 
+                max-width: none; /* Remove desktop max-width constraints */
             }
         }
     </style>
@@ -168,9 +193,13 @@
         <div id="search-area">
             <input type="text" id="keyword-input" placeholder="輸入關鍵字，例如：攝受心院...">
             <div class="button-group">
-                <button id="search-button" class="action-button"><i class="bi bi-search"></i>搜尋</button>
-                <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
-                <a href="index.html" id="return-button" class="action-button"><i class="bi bi-calendar-heart"></i>回到苑史上的今天</a>
+                <div class="button-row-top">
+                    <button id="search-button" class="action-button"><i class="bi bi-search"></i>搜尋</button>
+                    <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
+                </div>
+                <div class="button-row-bottom">
+                    <a href="index.html" id="return-button" class="action-button"><i class="bi bi-calendar-heart"></i>回到苑史上的今天</a>
+                </div>
             </div>
         </div>
         <div id="status">請輸入關鍵字進行搜尋</div>
@@ -196,7 +225,130 @@
     </script>
     
     <script>
-        const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml",proxyUrl=`https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,keywordInput=document.getElementById("keyword-input"),searchButton=document.getElementById("search-button"),statusEl=document.getElementById("status"),resultsSection=document.getElementById("search-results-section"),resultsHeader=resultsSection.querySelector("h2"),homeButtonContainer=document.getElementById("home-button-container");function resetResults(){resultsSection.style.display="none",resultsSection.querySelector(".content").innerHTML="",resultsHeader.innerHTML="",homeButtonContainer.style.display="none"}async function fetchAndProcessData(e){statusEl.innerHTML='<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...',searchButton.disabled=!0,keywordInput.disabled=!0;try{let t=await fetch(proxyUrl);if(!t.ok)throw new Error(`網路錯誤 (狀態碼: ${t.status})`);let o=await t.text(),n=new DOMParser().parseFromString(o,"text/html").querySelectorAll("tbody tr");e(n)}catch(e){statusEl.innerHTML=`<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${e.message}`}finally{searchButton.disabled=!1,keywordInput.disabled=!1}}function searchByKeyword(){resetResults();let e=keywordInput.value.trim();e?fetchAndProcessData(t=>{let o=[];for(let n of t){let t=n.querySelector("td:nth-child(2)");t&&t.textContent.trim().toLowerCase().includes(e.toLowerCase())&&o.push(t.textContent.trim())}if(o.length>0){resultsSection.style.display="block";let t=`找到 ${o.length} 筆關於「<span class="highlight">${e}</span>」的事件`;resultsHeader.innerHTML=`<i class="bi bi-card-checklist"></i>${t}`;let n=new RegExp(e,"gi"),s=o.map(e=>{let t=e.replace(n,`<span class="highlight">$&</span>`);return`<div class="event-item">${t}</div>`}).join("");resultsSection.querySelector(".content").innerHTML=s,statusEl.innerHTML='<i class="bi bi-check-circle-fill"></i>搜尋完成！'}else statusEl.innerHTML=`<i class="bi bi-emoji-frown"></i>找不到與「${e}」相關的事件。`;homeButtonContainer.style.display="block"}):statusEl.innerHTML='<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！'}searchButton.addEventListener("click",searchByKeyword),keywordInput.addEventListener("keypress",e=>{"Enter"===e.key&&searchByKeyword()}),document.getElementById("back-to-home-btn").addEventListener("click",()=>location.reload());
+        // 將 sheetUrl 改為 CSV 導出的 URL
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pub?gid=0&single=true&output=csv';
+
+        const keywordInput = document.getElementById("keyword-input");
+        const searchButton = document.getElementById("search-button");
+        const statusEl = document.getElementById("status");
+        const resultsSection = document.getElementById("search-results-section");
+        const resultsHeader = resultsSection.querySelector("h2");
+        const homeButtonContainer = document.getElementById("home-button-container");
+
+        function normalizeString(str) {
+            if (!str) return '';
+            // 將全形數字轉換為半形數字，以及處理全形空格等
+            return str.replace(/[Ａ-Ｚａ-ｚ０-９　]/g, s => {
+                if (s === '　') return ' '; // 全形空格轉半形空格
+                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            }).trim(); // 移除首尾空格
+        }
+
+        function resetResults(){
+            resultsSection.style.display="none";
+            resultsSection.querySelector(".content").innerHTML="";
+            resultsHeader.innerHTML="";
+            homeButtonContainer.style.display="none";
+        }
+
+        async function fetchAndProcessData(processor){
+            statusEl.innerHTML='<i class="bi bi-hourglass-split spinner"></i>正在資料庫中檢索...';
+            searchButton.disabled=true;
+            keywordInput.disabled=true;
+            console.log('Attempting to fetch data from:', sheetUrl); // 新增 log
+            try{
+                const response = await fetch(sheetUrl);
+                if(!response.ok) {
+                    console.error('Fetch response not OK:', response.status, response.statusText); // 新增 log
+                    throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
+                }
+                const csvText = await response.text();
+                console.log('Successfully fetched CSV text (first 500 chars):', csvText.substring(0, 500) + (csvText.length > 500 ? '...' : '')); // 新增 log
+                
+                // 解析 CSV 資料
+                const lines = csvText.split('\n');
+                console.log('CSV lines count:', lines.length); // 新增 log
+                const dataRows = [];
+                // 假設第一行是標題行，從第二行開始處理
+                for (let i = 1; i < lines.length; i++) { 
+                    const line = lines[i].trim();
+                    if (line) {
+                        // 這裡使用和 index.html 相同的 CSV 解析邏輯
+                        // 找到日期字串後的第一個空格，將其分割成兩部分
+                        const datePatternForSplit = /(\d{4}年\d{1,2}月\d{1,2}日)\s*(.*)/;
+                        const match = line.match(datePatternForSplit);
+
+                        if (match && match.length >= 3) {
+                            const datePart = match[1].trim(); // 第一組是日期
+                            const eventPart = match[2].trim(); // 第二組是事件描述
+                            dataRows.push([datePart, eventPart]);
+                        } else {
+                            console.warn(`Skipped malformed row ${i} (no date pattern match or insufficient columns):`, line); // 新增 log
+                        }
+                    }
+                }
+                console.log('Final parsed dataRows count:', dataRows.length); // 新增 log
+                console.log('First 5 parsed dataRows:', dataRows.slice(0, 5)); // 新增 log
+                processor(dataRows); // 將解析後的二維陣列傳遞給處理器
+            }catch(e){
+                statusEl.innerHTML=`<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${e.message}`;
+                console.error("Fetch or process data error:", e); // 輸出錯誤到控制台
+            }finally{
+                searchButton.disabled=false;
+                keywordInput.disabled=false;
+            }
+        }
+
+        function searchByKeyword(){
+            resetResults();
+            let keyword = keywordInput.value.trim();
+            if(keyword){
+                fetchAndProcessData(dataRows => { // dataRows 現在是 [[日期, 事件描述], [日期, 事件描述], ...]
+                    let foundEvents = [];
+                    const lowerCaseKeyword = normalizeString(keyword).toLowerCase(); // 標準化並轉小寫，用於匹配
+
+                    for (const row of dataRows) {
+                        const rawDateText = row[0]; // 日期字串
+                        const eventDescription = row[1]; // 事件描述字串
+
+                        // 將日期和事件描述組合起來進行全文搜尋
+                        const fullEventText = `${rawDateText} ${eventDescription}`;
+                        const normalizedFullEventText = normalizeString(fullEventText).toLowerCase();
+                        
+                        if (normalizedFullEventText.includes(lowerCaseKeyword)) {
+                            foundEvents.push(fullEventText);
+                        }
+                    }
+
+                    if(foundEvents.length > 0){
+                        resultsSection.style.display="block";
+                        let title=`找到 ${foundEvents.length} 筆關於「<span class="highlight">${keyword}</span>」的事件`;
+                        resultsHeader.innerHTML=`<i class="bi bi-card-checklist"></i>${title}`;
+                        
+                        // 用正則表達式來替換關鍵字並高亮顯示
+                        // 使用 'gi' 旗標表示全域 (g) 和不區分大小寫 (i)
+                        const highlightRegex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "gi"); // 關鍵字中的特殊字符需要轉義
+                        
+                        let eventsHtml = foundEvents.map(event => {
+                            let highlightedEvent = event.replace(highlightRegex, `<span class="highlight">$&</span>`);
+                            return `<div class="event-item">${highlightedEvent}</div>`;
+                        }).join("");
+                        
+                        resultsSection.querySelector(".content").innerHTML=eventsHtml;
+                        statusEl.innerHTML='<i class="bi bi-check-circle-fill"></i>搜尋完成！';
+                    }else{
+                        statusEl.innerHTML=`<i class="bi bi-emoji-frown"></i>找不到與「${keyword}」相關的事件。`;
+                    }
+                    homeButtonContainer.style.display="block";
+                });
+            }else{
+                statusEl.innerHTML='<i class="bi bi-exclamation-circle"></i>請先輸入要搜尋的關鍵字！';
+            }
+        }
+
+        searchButton.addEventListener("click",searchByKeyword);
+        keywordInput.addEventListener("keypress",e=>{"Enter"===e.key&&searchByKeyword()});
+        document.getElementById("back-to-home-btn").addEventListener("click",()=>location.reload());
     </script>
 </body>
 </html>
