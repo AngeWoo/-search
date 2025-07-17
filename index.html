@@ -242,9 +242,9 @@
         });
 
         // --- 恢復完整的 JavaScript 程式碼 ---
-        // 將 sheetUrl 改為 CSV 導出的 URL
+        // 直接使用 Google Sheets 的 CSV URL，不再透過 allorigins.win 代理
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pub?gid=0&single=true&output=csv';
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
+        // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`; // 移除此行
 
         const dateInput = document.getElementById('date-input');
         const searchButton = document.getElementById('search-button');
@@ -279,7 +279,8 @@
             searchButton.disabled = true;
             randomSearchButton.disabled = true;
             try {
-                const response = await fetch(proxyUrl);
+                // 直接從 Google Sheet URL 獲取數據
+                const response = await fetch(sheetUrl); 
                 if (!response.ok) throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
                 const csvText = await response.text();
                 
@@ -291,6 +292,7 @@
                     const line = lines[i].trim();
                     if (line) {
                         // 更可靠的 CSV 分割：匹配逗號，但忽略引號內的逗號
+                        // 這是處理 CSV 欄位可能包含逗號的關鍵
                         const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
                         
                         // 移除每個欄位兩側的引號，並去除多餘空格
@@ -330,17 +332,14 @@
                 const datePartsPattern = /^(\d+)年(\d+)月(\d+)日/; 
 
                 for (const row of rows) {
-                    const rawDateText = row[0] ? row[0].trim() : ''; // 取得日期欄位
-                    const eventDescription = row[1] ? row[1].trim() : ''; // 取得事件描述欄位
+                    const rawDateText = row[0] ? row[0].trim() : ''; // 取得日期欄位 (CSV 第一欄)
+                    const eventDescription = row[1] ? row[1].trim() : ''; // 取得事件描述欄位 (CSV 第二欄)
 
-                    // console.log('Processing row:', row); // 除錯用：顯示原始行
-                    // console.log('rawDateText:', rawDateText); // 除錯用：顯示原始日期文字
+                    // 如果 rawDateText 或 eventDescription 為空，則跳過此行，避免錯誤
+                    if (!rawDateText || !eventDescription) continue; 
 
                     const normalizedDateText = normalizeString(rawDateText);
                     const match = normalizedDateText.match(datePartsPattern);
-
-                    // console.log('normalizedDateText:', normalizedDateText); // 除錯用：顯示標準化後的日期文字
-                    // console.log('Date Match:', match); // 除錯用：顯示正則匹配結果
 
                     if (match) {
                         const eventYear = parseInt(match[1], 10);
@@ -414,7 +413,7 @@
                     const rawDateText = row[0] ? row[0].trim() : ''; 
                     const eventDescription = row[1] ? row[1].trim() : '';
 
-                    if (!rawDateText) continue; 
+                    if (!rawDateText || !eventDescription) continue; 
 
                     const normalizedDateText = normalizeString(rawDateText);
                     const fullEventString = `${rawDateText} ${eventDescription}`; // 組合成完整顯示字串
