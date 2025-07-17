@@ -258,7 +258,11 @@
 
         function normalizeString(str) {
             if (!str) return '';
-            return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+            // 將全形數字轉換為半形數字，以及處理全形空格等
+            return str.replace(/[Ａ-Ｚａ-ｚ０-９　]/g, s => {
+                if (s === '　') return ' '; // 全形空格轉半形空格
+                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            }).trim(); // 移除首尾空格
         }
 
         function resetResultAreas() {
@@ -286,14 +290,22 @@
                 for (let i = 1; i < lines.length; i++) { 
                     const line = lines[i].trim();
                     if (line) {
-                        // 使用逗號分隔，簡單處理，如果您的資料包含帶逗號的引號字串，可能需要更複雜的 CSV 解析庫
-                        const columns = line.split(','); 
-                        dataRows.push(columns);
+                        // 更可靠的 CSV 分割：匹配逗號，但忽略引號內的逗號
+                        const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
+                        
+                        // 移除每個欄位兩側的引號，並去除多餘空格
+                        const cleanedColumns = columns.map(col => col.replace(/^"|"$/g, '').trim());
+                        
+                        // 確保至少有兩欄 (日期和事件)
+                        if (cleanedColumns.length >= 2) {
+                             dataRows.push(cleanedColumns);
+                        }
                     }
                 }
                 processor(dataRows); // 將解析後的二維陣列傳遞給處理器
             } catch (error) {
                 statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
+                console.error("Fetch or process data error:", error); // 輸出錯誤到控制台
             } finally {
                 searchButton.disabled = false;
                 randomSearchButton.disabled = false;
@@ -312,27 +324,38 @@
             const targetMonth = dateObj.getMonth() + 1;
             const targetDay = dateObj.getDate();
 
-            fetchAndProcessData(rows => { // rows 現在是一個二維陣列
+            fetchAndProcessData(rows => { // rows 現在是一個二維陣列，每項是 [日期字串, 事件描述字串]
                 let todayEvents = [], thisMonthEvents = [];
-                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
+                // 修正日期解析正則表達式，使其更嚴謹地匹配開頭的日期部分
+                const datePartsPattern = /^(\d+)年(\d+)月(\d+)日/; 
 
                 for (const row of rows) {
-                    // 根據 Google Sheets 的欄位順序，日期資訊應該在第二欄 (索引為 1)
-                    const rawCellText = row[1] ? row[1].trim() : ''; // 確保欄位存在
-                    const normalizedText = normalizeString(rawCellText);
-                    const match = normalizedText.match(datePartsPattern);
+                    const rawDateText = row[0] ? row[0].trim() : ''; // 取得日期欄位
+                    const eventDescription = row[1] ? row[1].trim() : ''; // 取得事件描述欄位
+
+                    // console.log('Processing row:', row); // 除錯用：顯示原始行
+                    // console.log('rawDateText:', rawDateText); // 除錯用：顯示原始日期文字
+
+                    const normalizedDateText = normalizeString(rawDateText);
+                    const match = normalizedDateText.match(datePartsPattern);
+
+                    // console.log('normalizedDateText:', normalizedDateText); // 除錯用：顯示標準化後的日期文字
+                    // console.log('Date Match:', match); // 除錯用：顯示正則匹配結果
 
                     if (match) {
                         const eventYear = parseInt(match[1], 10);
                         const eventMonth = parseInt(match[2], 10);
                         const eventDay = parseInt(match[3], 10);
 
+                        const fullEventString = `${rawDateText} ${eventDescription}`; // 組合成完整顯示字串
+
                         if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
-                            todayEvents.push(rawCellText);
+                            todayEvents.push(fullEventString);
                         }
-                        // 確保本月事件不會重複加入今天事件
+                        // 如果只需要顯示與當前選定日期同月同日的事件 (不限年份)
+                        // 且該事件尚未被納入todayEvents，則加入thisMonthEvents
                         if (eventMonth === targetMonth && eventDay === targetDay) {
-                            thisMonthEvents.push(rawCellText);
+                             thisMonthEvents.push(fullEventString);
                         }
                     }
                 }
@@ -345,9 +368,11 @@
                     foundSomething = true;
                 }
                 
+                // 修正：篩選出不在今天事件中的本月事件，避免重複顯示
                 const uniqueThisMonthEvents = thisMonthEvents.filter(event => !todayEvents.includes(event));
                 if (uniqueThisMonthEvents.length > 0) {
                     monthSection.style.display = 'block';
+                    monthSection.querySelector('h2').innerHTML = '<i class="bi bi-calendar3"></i>本月事件'; // 確保標題正確
                     monthSection.querySelector('.content').innerHTML = uniqueThisMonthEvents.map(event => `<div class="event-item">${event}</div>`).join('');
                     foundSomething = true;
                 }
@@ -376,31 +401,35 @@
 
             if (scope === 'year') {
                 title = `<i class="bi bi-calendar-week"></i>${year}年的所有事件`;
-            } else {
+            } else { // scope === 'month'
                 title = `<i class="bi bi-calendar-month"></i>${month}月的所有事件`;
             }
 
             fetchAndProcessData(rows => { // rows 現在是一個二維陣列
                 let foundEvents = [];
-                const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
+                const datePartsPattern = /^(\d+)年(\d+)月(\d+)日/;
                 const yearPattern = new RegExp(`^${year}年`);
 
                 for (const row of rows) {
-                    // 根據 Google Sheets 的欄位順序，日期資訊應該在第二欄 (索引為 1)
-                    const rawCellText = row[1] ? row[1].trim() : ''; // 確保欄位存在
-                    const normalizedText = normalizeString(rawCellText);
+                    const rawDateText = row[0] ? row[0].trim() : ''; 
+                    const eventDescription = row[1] ? row[1].trim() : '';
+
+                    if (!rawDateText) continue; 
+
+                    const normalizedDateText = normalizeString(rawDateText);
+                    const fullEventString = `${rawDateText} ${eventDescription}`; // 組合成完整顯示字串
                     
                     if (scope === 'month') {
-                         const match = normalizedText.match(datePartsPattern);
+                         const match = normalizedDateText.match(datePartsPattern);
                          if (match) {
                              const eventMonth = parseInt(match[2], 10);
                              if(eventMonth === month) {
-                                 foundEvents.push(rawCellText);
+                                 foundEvents.push(fullEventString);
                              }
                          }
                     } else { // scope === 'year'
-                        if (yearPattern.test(normalizedText)) {
-                            foundEvents.push(rawCellText);
+                        if (yearPattern.test(normalizedDateText)) {
+                            foundEvents.push(fullEventString);
                         }
                     }
                 }
