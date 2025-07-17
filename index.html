@@ -72,12 +72,33 @@
         /* Base style for button group container (Desktop) */
         .button-group {
             display: flex;
-            flex-wrap: nowrap; /* Ensures buttons stay on one line for desktop */
-            justify-content: center;
-            gap: 10px;
+            flex-direction: column; /* Stack rows vertically */
+            justify-content: center; /* Center rows horizontally */
+            gap: 10px; /* Gap between button rows */
             width: 100%;
             max-width: 600px; 
         }
+
+        /* Styles for button rows (Desktop) */
+        .button-row-top,
+        .button-row-bottom {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Gap between buttons within the row */
+            width: 100%; /* Make rows take full width of button-group */
+        }
+
+        /* Adjust button widths for desktop layout */
+        .button-row-top .action-button {
+            flex: 1; /* Distribute space evenly */
+            max-width: calc(50% - 5px); /* Two buttons per row with gap */
+        }
+
+        .button-row-bottom .action-button {
+            flex: 1; /* Distribute space evenly */
+            max-width: calc(33.333% - 6.666px); /* Three buttons per row with gap */
+        }
+
 
         .action-button {
             padding: 12px 20px;
@@ -142,16 +163,24 @@
             }
             
             .button-group {
+                flex-direction: row; /* Reset to row for mobile */
+                flex-wrap: wrap; /* Allows buttons to wrap on mobile */
                 width: 90%; 
                 max-width: 400px; 
-                flex-wrap: wrap; /* Allows buttons to wrap on mobile */
+                /* gap is already 10px from base, which works for wrapped items */
             }
 
-            .button-group > .action-button {
-                width: calc(50% - 5px); 
+            /* For mobile, make the row wrappers disappear and let buttons be direct flex items of .button-group */
+            .button-row-top,
+            .button-row-bottom {
+                display: contents; 
+            }
+
+            .action-button {
+                width: calc(50% - 5px); /* Two buttons per row for mobile */
                 padding: 12px 5px; 
                 flex-grow: 1; 
-                /* white-space: nowrap; -- Already in base, can be kept or removed if mobile needs wrapping text inside button */
+                max-width: none; /* Remove desktop max-width constraints */
             }
 
             .fallback-buttons { flex-direction: column; }
@@ -168,11 +197,15 @@
         <div id="search-area">
             <input type="date" id="date-input">
             <div class="button-group">
-                <button id="search-button" class="action-button"><i class="bi bi-search"></i>查詢</button>
-                <button id="random-search-button" class="action-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
-                <button id="today-search-button" class="action-button"><i class="bi bi-calendar-event"></i>今日事件</button>
-                <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
-                <a href="index2.html" id="event-search-button" class="action-button"><i class="bi bi-card-text"></i>事件搜尋</a>
+                <div class="button-row-top">
+                    <button id="search-button" class="action-button"><i class="bi bi-search"></i>查詢</button>
+                    <button id="random-search-button" class="action-button"><i class="bi bi-shuffle"></i>隨機查詢</button>
+                </div>
+                <div class="button-row-bottom">
+                    <button id="today-search-button" class="action-button"><i class="bi bi-calendar-event"></i>今日事件</button>
+                    <a href="https://angewoo.github.io/Train17/index4.html" id="divination-button" class="action-button" target="_blank" rel="noopener noreferrer"><i class="bi bi-ticket-perforated"></i>苑史抽籤</a>
+                    <a href="index2.html" id="event-search-button" class="action-button"><i class="bi bi-card-text"></i>事件搜尋</a>
+                </div>
             </div>
         </div>
         <div id="status">請選擇日期，回顧歷史的足跡</div>
@@ -209,7 +242,7 @@
         });
 
         // --- 恢復完整的 JavaScript 程式碼 ---
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pubhtml';
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlYAWx-/pubhtml';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`;
 
         const dateInput = document.getElementById('date-input');
