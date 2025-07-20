@@ -7,14 +7,15 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
         :root {
             --primary-color: #6a89cc; 
             --secondary-color: #4a69bd; 
             --today-event-color: #d35400;
+            --mother-message-color: #9b59b6; 
+            --bakudaishou-color: #2ecc71; 
             --bg-color: #f5f7fa; 
             --text-color: #3d3d3d; 
             --light-text-color: #8c8c8c;
@@ -130,6 +131,24 @@
         #today-search-button:hover { background-color: #16a085; }
 
         #status { text-align: center; font-weight: 500; min-height: 24px; color: var(--light-text-color); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        /* 法母十七訊區塊的樣式 */
+        #mother-messages-section h2 { color: var(--mother-message-color); }
+        #mother-messages-section .event-item { border-left-color: var(--mother-message-color); }
+
+        /* 拔苦代受靈訓區塊的樣式 */
+        #bakudaishou-section h2 { color: var(--bakudaishou-color); }
+        #bakudaishou-section .event-item { border-left-color: var(--bakudaishou-color); }
+
+        /* 強制設定所有 result-section 內 h2 的 i 標籤的字體和大小 */
+        .result-section h2 i {
+            font-family: "Bootstrap Icons" !important; /* 確保使用 Bootstrap Icons 字體 */
+            font-size: 1.3em; /* 讓圖示大小與 h2 文字一致 */
+            margin-right: 8px; /* 圖示與文字間距 */
+            font-style: normal !important; /* 確保不是斜體 */
+            display: inline-block !important; /* 確保顯示 */
+        }
+
         #results-wrapper { margin-top: 30px; }
         .result-section { margin-bottom: 25px; display: none; }
         .result-section h2 { font-size: 1.3em; color: var(--secondary-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
@@ -228,6 +247,17 @@
             </div>
         </div>
         <div id="status">請選擇日期，回顧歷史的足跡</div>
+        <!-- 法母十七訊區塊 -->
+        <div id="mother-messages-section" class="result-section">
+            <h2><i class="bi bi-chat-quote"></i>法母十七訊</h2>
+            <div class="content"></div>
+        </div>
+        <!-- 拔苦代受靈訓區塊 (新增) -->
+        <div id="bakudaishou-section" class="result-section">
+            <h2><i class="bi bi-heart-pulse-fill"></i>拔苦代受靈訓</h2>
+            <div class="content"></div>
+        </div>
+        <!-- 結束新增區塊 -->
         <div id="results-wrapper">
             <div id="today-events-section" class="result-section">
                 <h2><i class="bi bi-star-fill"></i>今天事件</h2>
@@ -255,14 +285,14 @@
     <script>
         // 禁止組合鍵
         document.addEventListener('keydown', function(e) {
-          if (e.ctrlKey && ('scpu'.indexOf(e.key) !== -1)) {
+          if (e.ctrlKey && ('scpu'.indexOf(e.key) !== -1)) { 
             e.preventDefault();
           }
         });
 
-        // --- 恢復完整的 JavaScript 程式碼 ---
-        // 直接使用 Google Sheets 的 CSV URL，不再透過 allorigins.win 代理
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSELNOgRozrKO1bscsHe6doF8rH9-wSPYgvkhR5xXGhHKYvKoiXnlEC8YR3G5pPwQ2YFOksnlxYAQx-/pub?gid=0&single=true&output=csv';
+        const motherMessagesSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSEWDc6xiRT1fIynaHGScq18jeolq6GNp4Xdyp-UtH7BfG198FTeSBMC3_WImR8ZFqZCHX4r7hQf0UW/pub?gid=0&single=true&output=csv';
+        const bakudaishouSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQp08ZcC5kK1DRs8jE0FYXwmFLh5wXTxJZgdjuOK8s_UIcovZaqKqJhRIAa-Qz3yh5O80cs55euiKp/pub?gid=0&single=true&output=csv';
 
         const dateInput = document.getElementById('date-input');
         const searchButton = document.getElementById('search-button');
@@ -273,76 +303,144 @@
         const monthSection = document.getElementById('this-month-events-section');
         const fallbackSection = document.getElementById('fallback-options');
         const homeButtonContainer = document.getElementById('home-button-container');
+        
+        const motherMessagesSection = document.getElementById('mother-messages-section');
+        const motherMessagesContent = motherMessagesSection.querySelector('.content');
+        
+        const bakudaishouSection = document.getElementById('bakudaishou-section');
+        const bakudaishouContent = bakudaishouSection.querySelector('.content');
+        
+        let motherMessagesData = []; 
+        let bakudaishouData = []; 
 
         function normalizeString(str) {
             if (!str) return '';
-            // 將全形數字轉換為半形數字，以及處理全形空格等
             return str.replace(/[Ａ-Ｚａ-ｚ０-９　]/g, s => {
-                if (s === '　') return ' '; // 全形空格轉半形空格
+                if (s === '　') return ' '; 
                 return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-            }).trim(); // 移除首尾空格
+            }).trim(); 
         }
 
         function resetResultAreas() {
             todaySection.style.display = 'none';
             monthSection.style.display = 'none';
             fallbackSection.style.display = 'none';
+            motherMessagesSection.style.display = 'none'; 
+            bakudaishouSection.style.display = 'none'; 
             homeButtonContainer.style.display = 'none';
+
             todaySection.querySelector('.content').innerHTML = '';
             monthSection.querySelector('.content').innerHTML = '';
+            motherMessagesContent.innerHTML = ''; 
+            bakudaishouContent.innerHTML = ''; 
         }
 
         async function fetchAndProcessData(processor) {
             statusEl.innerHTML = '<i class="bi bi-hourglass-split spinner"></i>正在時光機中穿梭...';
             searchButton.disabled = true;
             randomSearchButton.disabled = true;
-            console.log('Attempting to fetch data from:', sheetUrl); // 新增 log
+            console.log('Attempting to fetch data from:', sheetUrl); 
             try {
                 const response = await fetch(sheetUrl); 
                 if (!response.ok) {
-                    console.error('Fetch response not OK:', response.status, response.statusText); // 新增 log
+                    console.error('Fetch response not OK:', response.status, response.statusText); 
                     throw new Error(`網路錯誤 (狀態碼: ${response.status})`);
                 }
                 const csvText = await response.text();
-                console.log('Successfully fetched CSV text (first 500 chars):', csvText.substring(0, 500) + (csvText.length > 500 ? '...' : '')); // 新增 log
+                console.log('Successfully fetched CSV text (first 500 chars):', csvText.substring(0, 500) + (csvText.length > 500 ? '...' : '')); 
                 
-                // 解析 CSV 資料
                 const lines = csvText.split('\n');
-                console.log('CSV lines count:', lines.length); // 新增 log
+                console.log('CSV lines count:', lines.length); 
                 const dataRows = [];
-                // 假設第一行是標題行，從第二行開始處理
                 for (let i = 1; i < lines.length; i++) { 
                     const line = lines[i].trim();
                     if (line) {
-                        // *** 修正點：根據實際的 CSV 格式，使用更簡單的分割邏輯
-                        // 嘗試找到日期字串後的第一個空格，將其分割成兩部分
                         const datePatternForSplit = /(\d{4}年\d{1,2}月\d{1,2}日)\s*(.*)/;
                         const match = line.match(datePatternForSplit);
 
                         if (match && match.length >= 3) {
-                            const datePart = match[1].trim(); // 第一組是日期
-                            const eventPart = match[2].trim(); // 第二組是事件描述
+                            const datePart = match[1].trim(); 
+                            const eventPart = match[2].trim(); 
                             dataRows.push([datePart, eventPart]);
-                            // console.log(`Processed row ${i}:`, [datePart, eventPart]); // 每個處理後的行都打 log，必要時再開啟
                         } else {
-                            console.warn(`Skipped malformed row ${i} (no date pattern match or insufficient columns):`, line); // 新增 log
+                            console.warn(`Skipped malformed row ${i} (no date pattern match or insufficient columns):`, line); 
                         }
                     }
                 }
-                console.log('Final parsed dataRows count:', dataRows.length); // 新增 log
-                console.log('First 5 parsed dataRows:', dataRows.slice(0, 5)); // 新增 log
-                processor(dataRows); // 將解析後的二維陣列傳遞給處理器
+                console.log('Final parsed dataRows count:', dataRows.length); 
+                console.log('First 5 parsed dataRows:', dataRows.slice(0, 5)); 
+                processor(dataRows); 
             } catch (error) {
                 statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取資料時發生錯誤: ${error.message}`;
-                console.error("Fetch or process data error:", error); // 輸出錯誤到控制台
+                console.error("Fetch or process data error:", error); 
             } finally {
                 searchButton.disabled = false;
                 randomSearchButton.disabled = false;
             }
         }
         
+        async function fetchMotherMessages() {
+            console.log('Fetching mother messages from:', motherMessagesSheetUrl);
+            try {
+                const response = await fetch(motherMessagesSheetUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch mother messages (status: ${response.status})`);
+                }
+                const csvText = await response.text();
+                motherMessagesData = csvText.split('\n')
+                                        .map(line => normalizeString(line)) 
+                                        .filter(line => line.length > 0); 
+                console.log('Mother messages fetched:', motherMessagesData.length, motherMessagesData);
+            } catch (error) {
+                console.error("Error fetching mother messages:", error);
+                statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取法母十七訊時發生錯誤: ${error.message}`;
+            }
+        }
+
+        async function fetchBakudaishouMessages() {
+            console.log('Fetching Bakudaishou messages from:', bakudaishouSheetUrl);
+            try {
+                const response = await fetch(bakudaishouSheetUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch Bakudaishou messages (status: ${response.status})`);
+                }
+                const csvText = await response.text();
+                bakudaishouData = csvText.split('\n')
+                                        .map(line => normalizeString(line)) 
+                                        .filter(line => line.length > 0); 
+                console.log('Bakudaishou messages fetched:', bakudaishouData.length, bakudaishouData);
+            } catch (error) {
+                console.error("Error fetching Bakudaishou messages:", error);
+                statusEl.innerHTML = `<i class="bi bi-x-octagon-fill"></i>讀取拔苦代受靈訓時發生錯誤: ${error.message}`;
+            }
+        }
+
+        function displayRandomMotherMessage() {
+            if (motherMessagesData.length > 0) {
+                const randomIndex = Math.floor(Math.random() * motherMessagesData.length);
+                const randomMessage = motherMessagesData[randomIndex];
+                motherMessagesContent.innerHTML = `<div class="event-item">${randomMessage}</div>`;
+                motherMessagesSection.style.display = 'block';
+            } else {
+                motherMessagesContent.innerHTML = '<div class="event-item">無法載入法母十七訊。</div>';
+                motherMessagesSection.style.display = 'block'; 
+            }
+        }
+
+        function displayRandomBakudaishouMessage() {
+            if (bakudaishouData.length > 0) {
+                const randomIndex = Math.floor(Math.random() * bakudaishouData.length);
+                const randomMessage = bakudaishouData[randomIndex];
+                bakudaishouContent.innerHTML = `<div class="event-item">${randomMessage}</div>`;
+                bakudaishouSection.style.display = 'block';
+            } else {
+                bakudaishouContent.innerHTML = '<div class="event-item">無法載入拔苦代受靈訓。</div>';
+                bakudaishouSection.style.display = 'block'; 
+            }
+        }
+
         function searchForDate() {
-            resetResultAreas();
+            resetResultAreas(); 
             const selectedDate = dateInput.value;
             if (!selectedDate) {
                 statusEl.innerHTML = '<i class="bi bi-exclamation-circle"></i>請先選擇一個有效的日期！';
@@ -352,53 +450,42 @@
             const targetYear = dateObj.getFullYear();
             const targetMonth = dateObj.getMonth() + 1;
             const targetDay = dateObj.getDate();
-            console.log(`Searching for date: ${targetYear}年${targetMonth}月${targetDay}日`); // 新增 log
+            console.log(`Searching for date: ${targetYear}年${targetMonth}月${targetDay}日`); 
 
-            fetchAndProcessData(rows => { // rows 現在是一個二維陣列，每項是 [日期字串, 事件描述字串]
+            fetchAndProcessData(rows => { 
                 let todayEvents = [], thisMonthEvents = [];
-                // 修正日期解析正則表達式，使其更嚴謹地匹配開頭的日期部分
                 const datePartsPattern = /(\d+)年(\d+)月(\d+)日/; 
 
                 for (const row of rows) {
-                    const rawDateText = row[0]; // 取得日期欄位 (CSV 第一欄)
-                    const eventDescription = row[1]; // 取得事件描述欄位 (CSV 第二欄)
+                    const rawDateText = row[0]; 
+                    const eventDescription = row[1];
 
-                    // 如果 rawDateText 或 eventDescription 為空，則跳過此行，避免錯誤
                     if (!rawDateText || !eventDescription) {
-                        // console.log('Skipping row due to empty date or description:', row); // 太多 log 時可註解
                         continue; 
                     }
 
                     const normalizedDateText = normalizeString(rawDateText);
                     const match = normalizedDateText.match(datePartsPattern);
 
-                    // console.log('Processing row:', rawDateText, eventDescription); // 除錯用：顯示原始行
-                    // console.log('Normalized Date Text:', normalizedDateText); // 除錯用：顯示標準化後的日期文字
-                    // console.log('Date Regex Match:', match); // 除錯用：顯示正則匹配結果
-
                     if (match) {
                         const eventYear = parseInt(match[1], 10);
                         const eventMonth = parseInt(match[2], 10);
                         const eventDay = parseInt(match[3], 10);
 
-                        const fullEventString = `${rawDateText} ${eventDescription}`; // 組合成完整顯示字串
+                        const fullEventString = `${rawDateText} ${eventDescription}`; 
 
                         if (eventYear === targetYear && eventMonth === targetMonth && eventDay === targetDay) {
                             todayEvents.push(fullEventString);
-                            // console.log('Match found for today:', fullEventString); // 新增 log
                         }
-                        // 如果只需要顯示與當前選定日期同月同日的事件 (不限年份)
-                        // 且該事件尚未被納入todayEvents，則加入thisMonthEvents
+                        
                         if (eventMonth === targetMonth && eventDay === targetDay) {
                              thisMonthEvents.push(fullEventString);
                         }
-                    } else {
-                        // console.log('No date match for:', normalizedDateText); // 除錯用：顯示未能匹配的日期
                     }
                 }
                 
-                console.log('Today Events Found:', todayEvents.length, todayEvents); // 新增 log
-                console.log('This Month Events Found (before filtering):', thisMonthEvents.length, thisMonthEvents); // 新增 log
+                console.log('Today Events Found:', todayEvents.length, todayEvents); 
+                console.log('This Month Events Found (before filtering):', thisMonthEvents.length, thisMonthEvents); 
 
                 let foundSomething = false;
                 if (todayEvents.length > 0) {
@@ -408,13 +495,12 @@
                     foundSomething = true;
                 }
                 
-                // 修正：篩選出不在今天事件中的本月事件，避免重複顯示
                 const uniqueThisMonthEvents = thisMonthEvents.filter(event => !todayEvents.includes(event));
-                console.log('Unique This Month Events Found:', uniqueThisMonthEvents.length, uniqueThisMonthEvents); // 新增 log
+                console.log('Unique This Month Events Found:', uniqueThisMonthEvents.length, uniqueThisMonthEvents);
 
                 if (uniqueThisMonthEvents.length > 0) {
                     monthSection.style.display = 'block';
-                    monthSection.querySelector('h2').innerHTML = '<i class="bi bi-calendar3"></i>本月事件'; // 確保標題正確
+                    monthSection.querySelector('h2').innerHTML = '<i class="bi bi-calendar3"></i>本月事件'; 
                     monthSection.querySelector('.content').innerHTML = uniqueThisMonthEvents.map(event => `<div class="event-item">${event}</div>`).join('');
                     foundSomething = true;
                 }
@@ -440,7 +526,7 @@
             let title;
             const year = dateObj.getFullYear();
             const month = dateObj.getMonth() + 1;
-            console.log(`Searching by scope: ${scope}. Target Year: ${year}, Target Month: ${month}`); // 新增 log
+            console.log(`Searching by scope: ${scope}. Target Year: ${year}, Target Month: ${month}`); 
 
             if (scope === 'year') {
                 title = `<i class="bi bi-calendar-week"></i>${year}年的所有事件`;
@@ -448,7 +534,7 @@
                 title = `<i class="bi bi-calendar-month"></i>${month}月的所有事件`;
             }
 
-            fetchAndProcessData(rows => { // rows 現在是一個二維陣列
+            fetchAndProcessData(rows => { 
                 let foundEvents = [];
                 const datePartsPattern = /(\d+)年(\d+)月(\d+)日/;
                 const yearPattern = new RegExp(`^${year}年`);
@@ -460,7 +546,7 @@
                     if (!rawDateText || !eventDescription) continue; 
 
                     const normalizedDateText = normalizeString(rawDateText);
-                    const fullEventString = `${rawDateText} ${eventDescription}`; // 組合成完整顯示字串
+                    const fullEventString = `${rawDateText} ${eventDescription}`; 
                     
                     if (scope === 'month') {
                          const match = normalizedDateText.match(datePartsPattern);
@@ -477,7 +563,7 @@
                     }
                 }
                 
-                console.log(`Events found for scope '${scope}':`, foundEvents.length, foundEvents); // 新增 log
+                console.log(`Events found for scope '${scope}':`, foundEvents.length, foundEvents); 
 
                 if (foundEvents.length > 0) {
                     todaySection.style.display = 'block';
@@ -494,9 +580,12 @@
         function searchForToday() {
             dateInput.valueAsDate = new Date();
             searchForDate();
+            // 今日事件不顯示隨機靈訓
         }
 
         function randomSearch() {
+            resetResultAreas(); 
+
             const startDate = new Date('1935-12-28');
             const endDate = new Date(); 
             const startTime = startDate.getTime();
@@ -504,7 +593,19 @@
             const randomTime = startTime + Math.random() * (endTime - startTime);
             const randomDate = new Date(randomTime);
             dateInput.valueAsDate = randomDate;
-            searchForDate();
+            searchForDate(); 
+
+            if (motherMessagesData.length === 0) {
+                fetchMotherMessages().then(() => displayRandomMotherMessage());
+            } else {
+                displayRandomMotherMessage();
+            }
+
+            if (bakudaishouData.length === 0) {
+                fetchBakudaishouMessages().then(() => displayRandomBakudaishouMessage());
+            } else {
+                displayRandomBakudaishouMessage();
+            }
         }
 
         searchButton.addEventListener('click', searchForDate);
@@ -515,11 +616,13 @@
         todaySearchButton.addEventListener('click', searchForToday);
         document.getElementById('back-to-home-btn').addEventListener('click', () => location.reload());
 
-        // 這就是恢復預設查詢功能的關鍵程式碼
         document.addEventListener('DOMContentLoaded', () => {
             const defaultDate = new Date('1935-12-28');
             dateInput.valueAsDate = defaultDate;
-            searchForDate();
+            searchForDate(); 
+
+            fetchMotherMessages(); 
+            fetchBakudaishouMessages(); 
         });
     </script>
 </body>
